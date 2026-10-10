@@ -1,15 +1,15 @@
 // forest.js
 // Módulo Bosque de Fuentes. Catálogo + consulta RSS + noticias.
 
-import * as store from '../../core/store.js?v=32';
-import { SEED_SOURCES } from '../../data/sources.js?v=32';
-import { REGIONS, getRegion, getCategory } from '../../data/categories.js?v=32';
-import { openSourceEditor, setupSourceEditor } from './source-editor.js?v=32';
-import { fetchSourceNews } from '../../services/rss-service.js?v=32';
-import { addWorkItem } from '../warehouse/warehouse.js?v=32';
-import { detectBrand, getBrand, BRANDS } from '../../data/brands.js?v=32';
-import { fetchWPSource } from '../../services/wp-service.js?v=32';
-import { extractFromLink } from '../../services/link-extractor.js?v=32';
+import * as store from '../../core/store.js??v=33';
+import { SEED_SOURCES } from '../../data/sources.js??v=33';
+import { REGIONS, getRegion, getCategory } from '../../data/categories.js??v=33';
+import { openSourceEditor, setupSourceEditor } from './source-editor.js??v=33';
+import { fetchSourceNews } from '../../services/rss-service.js??v=33';
+import { addWorkItem } from '../warehouse/warehouse.js??v=33';
+import { detectBrand, getBrand, BRANDS } from '../../data/brands.js??v=33';
+import { fetchWPSource } from '../../services/wp-service.js??v=33';
+import { extractFromLink } from '../../services/link-extractor.js??v=33';
 
 const state = {
   sources: [],
@@ -22,6 +22,7 @@ const state = {
 };
 
 const MAX_SOURCES_PER_FETCH = 8;
+const MAX_NEWS_AGE_HOURS = 48; // Solo noticias de las últimas 48 horas
 
 // --- Cargar fuentes (sembrar si es la primera vez) ---
 async function loadSources() {
@@ -69,12 +70,31 @@ async function loadSources() {
 // --- Cargar noticias desde la base ---
 async function loadNewsFromDb() {
   const all = await store.getAll('news');
-  state.news = all.sort((a, b) => {
+
+  // Separar frescas de viejas
+  const fresh = [];
+  const stale = [];
+  all.forEach((n) => {
+    if (isNewsFresh(n)) fresh.push(n);
+    else stale.push(n);
+  });
+
+  // Borrar las viejas de IndexedDB
+  if (stale.length > 0) {
+    console.log(`[forest] Limpiando ${stale.length} noticias viejas de la base`);
+    for (const n of stale) {
+      await store.remove('news', n.id);
+    }
+  }
+
+  // Ordenar frescas por fecha descendente
+  state.news = fresh.sort((a, b) => {
     const da = a.pubDate ? new Date(a.pubDate).getTime() : 0;
     const dbb = b.pubDate ? new Date(b.pubDate).getTime() : 0;
     return dbb - da;
   });
-  console.log(`[forest] ${state.news.length} noticias en base`);
+
+  console.log(`[forest] ${state.news.length} noticias frescas en base (${stale.length} viejas eliminadas)`);
 }
 
 // --- Filtros ---
@@ -92,6 +112,9 @@ function filterSources() {
 
 function filterNews() {
   return state.news.filter((n) => {
+    // Filtrar por antigüedad (solo noticias frescas)
+    if (!isNewsFresh(n)) return false;
+
     if (state.newsFilterRegion !== 'all' && n.region !== state.newsFilterRegion) return false;
     if (state.newsSearch) {
       const q = state.newsSearch.toLowerCase();
@@ -132,6 +155,18 @@ function timeAgo(iso) {
   const hr = Math.floor(min / 60);
   if (hr < 24) return `${hr}h`;
   return `${Math.floor(hr / 24)}d`;
+}
+
+// --- ¿La noticia es más nueva que MAX_NEWS_AGE_HOURS? ---
+function isNewsFresh(item) {
+  const dateStr = item.pubDate || item.timestamp;
+  if (!dateStr) return false; // sin fecha → descartar
+
+  const pubTime = new Date(dateStr).getTime();
+  if (isNaN(pubTime)) return false;
+
+  const ageHours = (Date.now() - pubTime) / (1000 * 60 * 60);
+  return ageHours >= 0 && ageHours <= MAX_NEWS_AGE_HOURS;
 }
 
 // --- Renderizar fuentes ---
@@ -335,9 +370,11 @@ async function fetchOneSource(id) {
   setSourceStatus(id, 'active', 'Consultando…');
 
   try {
-    const items = await fetchNews(source);
+        const items = await fetchNews(source);
     let saved = 0;
     for (const item of items) {
+      // Filtrar: solo noticias de las últimas N horas
+      if (!isNewsFresh(item)) continue;
       const existing = await store.get('news', item.id);
       if (!existing) {
         await store.set('news', item.id, item);
@@ -379,9 +416,11 @@ async function fetchAllActive() {
   let totalNew = 0;
   for (const source of active) {
     try {
-      const items = await fetchNews(source);
+            const items = await fetchNews(source);
       let saved = 0;
       for (const item of items) {
+        // Filtrar: solo noticias de las últimas N horas
+        if (!isNewsFresh(item)) continue;
         const existing = await store.get('news', item.id);
         if (!existing) {
           await store.set('news', item.id, item);

@@ -2,8 +2,8 @@
 // Editor de fuentes: alta, edición y eliminación.
 // Maneja el modal dedicado del Bosque.
 
-import * as store from '../../core/store.js?v=32';
-import { CATEGORIES, REGIONS } from '../../data/categories.js?v=32';
+import * as store from '../../core/store.js??v=33';
+import { CATEGORIES, REGIONS } from '../../data/categories.js??v=33';
 
 let currentEditingId = null;
 let onSaveCallback = null;
