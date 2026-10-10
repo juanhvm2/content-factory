@@ -1,0 +1,716 @@
+/* ===================================================== */
+/* FÁBRICA DE CONTENIDOS · Workspace unificado            */
+/* ===================================================== */
+
+.module-view[data-module-view="factory"].is-active {
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.module-view[data-module-view="factory"] .module-header,
+.module-view[data-module-view="factory"] .placeholder-card {
+  display: none;
+}
+
+.factory-workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-0);
+}
+
+/* ---------- TOPBAR ---------- */
+.factory-topbar {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--border-1);
+  min-height: 56px;
+}
+
+.factory-topbar-left,
+.factory-topbar-center,
+.factory-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.factory-topbar-actions {
+  justify-content: flex-end;
+}
+
+.factory-topbar-center {
+  justify-content: center;
+  min-width: 0;
+}
+
+.factory-mode-selector {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  padding: 2px;
+}
+
+.factory-mode-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-2);
+  color: var(--text-3);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.factory-mode-btn:hover {
+  background: var(--bg-3);
+  color: var(--text-1);
+}
+
+.factory-mode-btn.is-active {
+  background: var(--factory-glow);
+  color: var(--factory);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--factory) 50%, transparent);
+}
+
+.factory-workitem-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.factory-workitem-empty {
+  font-size: 12px;
+  color: var(--text-4);
+  font-style: italic;
+}
+
+.factory-workitem-title {
+  font-size: 13px;
+  color: var(--text-1);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.factory-brand-pill {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 3px 8px;
+  border-radius: var(--radius-1);
+  flex-shrink: 0;
+}
+
+.factory-brand-random {
+  background: rgba(163, 113, 247, 0.15);
+  color: var(--factory);
+}
+
+.factory-brand-express {
+  background: rgba(248, 81, 73, 0.15);
+  color: var(--danger);
+}
+
+/* ---------- BODY GRID ---------- */
+.factory-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 72px 260px 1fr 300px;
+  gap: 1px;
+  background: var(--border-1);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ---------- TOOLBAR (columna 1) ---------- */
+.factory-toolbar {
+  background: var(--bg-1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-2);
+  overflow-y: auto;
+}
+
+.factory-tool-btn {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-2);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 6px 2px;
+}
+
+.factory-tool-btn:hover {
+  background: var(--bg-2);
+  color: var(--text-1);
+}
+
+.factory-tool-btn.is-active {
+  background: var(--factory-glow);
+  color: var(--factory);
+  border-color: color-mix(in srgb, var(--factory) 40%, transparent);
+}
+
+.factory-tool-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.factory-tool-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+/* ---------- TOOL PANEL (columna 2) ---------- */
+.factory-tool-panel {
+  background: var(--bg-1);
+  overflow-y: auto;
+  padding: var(--space-4);
+  min-width: 0;
+}
+
+.factory-panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: var(--space-5);
+  color: var(--text-3);
+}
+
+.factory-panel-empty-icon {
+  font-size: 40px;
+  opacity: 0.4;
+  margin-bottom: var(--space-3);
+}
+
+.factory-panel-empty-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: var(--space-2);
+}
+
+.factory-panel-empty-sub {
+  font-size: 11px;
+  color: var(--text-4);
+  line-height: 1.5;
+}
+
+/* ---------- CANVAS (columna 3) ---------- */
+.factory-canvas-wrap {
+  background: var(--bg-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: var(--space-4);
+  position: relative;
+}
+
+.factory-canvas-container {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1080 / 1350;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-2);
+  background: #000;
+  overflow: hidden;
+}
+
+#factory-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: var(--bg-2);
+}
+
+.factory-canvas-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+  z-index: 1;
+}
+
+.factory-placeholder-content {
+  text-align: center;
+  padding: var(--space-6);
+  max-width: 380px;
+}
+
+.factory-placeholder-icon {
+  font-size: 64px;
+  margin-bottom: var(--space-4);
+  opacity: 0.5;
+}
+
+.factory-placeholder-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: var(--space-3);
+  letter-spacing: -0.3px;
+}
+
+.factory-placeholder-sub {
+  font-size: 13px;
+  color: var(--text-3);
+  line-height: 1.6;
+  margin-bottom: var(--space-4);
+}
+
+.factory-placeholder-sub strong {
+  color: var(--factory);
+}
+
+.factory-placeholder-dims {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 4px 12px;
+  background: var(--bg-3);
+  border: 1px solid var(--border-1);
+  border-radius: 999px;
+  color: var(--text-3);
+}
+
+/* ---------- PROPERTIES (columna 4) ---------- */
+.factory-properties {
+  background: var(--bg-1);
+  overflow-y: auto;
+  padding: var(--space-4);
+}
+
+.factory-props-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: var(--text-4);
+  padding: var(--space-5);
+}
+
+.factory-props-icon {
+  font-size: 32px;
+  opacity: 0.4;
+  margin-bottom: var(--space-3);
+}
+
+.factory-props-text {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ---------- SLIDES BAR (abajo) ---------- */
+.factory-slides-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-1);
+  border-top: 1px solid var(--border-1);
+  min-height: 96px;
+  max-height: 96px;
+  transition: all var(--transition-base);
+}
+
+.factory-slides-bar.factory-slides-hidden {
+  display: none;
+}
+
+.factory-slides-info {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-4);
+  flex-shrink: 0;
+}
+
+.factory-slides-strip {
+  flex: 1;
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.factory-slides-empty {
+  font-size: 11px;
+  color: var(--text-4);
+  font-style: italic;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 1280px) {
+  .factory-body {
+    grid-template-columns: 64px 220px 1fr 260px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .factory-body {
+    grid-template-columns: 56px 1fr;
+  }
+  .factory-tool-panel,
+  .factory-properties {
+    display: none;
+  }
+  .factory-topbar {
+    grid-template-columns: 1fr auto;
+  }
+  .factory-topbar-center {
+    display: none;
+  }
+}
+
+/* Panel de contenido */
+.factory-panel-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.factory-panel-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-1);
+  margin-bottom: var(--space-2);
+}
+
+.factory-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.factory-field label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-3);
+}
+
+.factory-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: 12px;
+  transition: all var(--transition-fast);
+  resize: vertical;
+}
+
+.factory-input:focus {
+  outline: none;
+  border-color: var(--factory);
+  box-shadow: 0 0 0 3px var(--factory-glow);
+}
+
+/* Grid de imágenes */
+.factory-image-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.factory-image-thumb {
+  aspect-ratio: 1;
+  background: var(--bg-2);
+  border: 2px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.factory-image-thumb:hover {
+  border-color: var(--border-2);
+}
+
+.factory-image-thumb.is-active {
+  border-color: var(--factory);
+  box-shadow: 0 0 0 2px var(--factory-glow);
+}
+
+.factory-image-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Controles del panel de imagen */
+.factory-btn-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.factory-mini-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 4px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  color: var(--text-3);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.factory-mini-btn:hover {
+  background: var(--bg-3);
+  color: var(--text-1);
+  border-color: var(--border-2);
+}
+
+.factory-mini-btn.is-active {
+  background: var(--factory-glow);
+  color: var(--factory);
+  border-color: color-mix(in srgb, var(--factory) 60%, transparent);
+}
+
+/* Sliders dentro del panel */
+.factory-input[type="range"] {
+  padding: 0;
+  height: 22px;
+  background: transparent;
+  border: none;
+  accent-color: var(--factory);
+  cursor: pointer;
+}
+
+.factory-input[type="range"]:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Ajuste del tamaño de las miniaturas en grilla cuando hay muchas */
+.factory-image-grid {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* Color pickers del panel de plantilla */
+.factory-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.factory-color-input {
+  width: 40px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.factory-color-input::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+
+.factory-color-input::-webkit-color-swatch {
+  border: none;
+  border-radius: 4px;
+}
+
+.factory-color-hex {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+
+/* ===================================================== */
+/* PANEL DE LOGOS                                         */
+/* ===================================================== */
+
+.factory-logo-current {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.factory-logo-source {
+  font-size: 10px;
+  color: var(--text-3);
+  font-style: italic;
+}
+
+.factory-logo-preview-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  padding: var(--space-3);
+  background: var(--bg-0);
+  border: 1px dashed var(--border-1);
+  border-radius: var(--radius-2);
+}
+
+.factory-logo-preview-img {
+  max-width: 100%;
+  max-height: 120px;
+  object-fit: contain;
+  display: block;
+}
+
+.factory-logo-preview-empty {
+  font-size: 12px;
+  color: var(--text-4);
+  font-style: italic;
+}
+
+.factory-mini-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===================================================== */
+/* BARRA DE SLIDES                                        */
+/* ===================================================== */
+
+.factory-slide-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all var(--transition-fast);
+  border: 2px solid transparent;
+}
+
+.factory-slide-item:hover {
+  background: var(--bg-2);
+}
+
+.factory-slide-item.is-active {
+  border-color: var(--factory);
+  background: var(--factory-glow);
+}
+
+.factory-slide-thumb {
+  width: 56px;
+  height: 70px;
+  background: var(--bg-0);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.factory-slide-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.factory-slide-thumb-placeholder {
+  font-size: 22px;
+  opacity: 0.4;
+}
+
+.factory-slide-label {
+  font-size: 9px;
+  color: var(--text-4);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.factory-slide-item.is-active .factory-slide-label {
+  color: var(--factory);
+}
+
+.factory-slide-add {
+  flex-shrink: 0;
+  width: 56px;
+  height: 70px;
+  margin-left: 8px;
+  border: 2px dashed var(--border-2);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-3);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.factory-slide-add:hover {
+  border-color: var(--factory);
+  color: var(--factory);
+  background: var(--factory-glow);
+}

@@ -1,0 +1,314 @@
+/* Módulo Galpón */
+.module-view[data-module-view="warehouse"] .module-header h2 {
+  color: var(--warehouse);
+}
+
+.warehouse-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--space-3);
+}
+
+.warehouse-empty {
+  grid-column: 1 / -1;
+  padding: var(--space-6);
+  text-align: center;
+  background: var(--bg-1);
+  border: 1px dashed var(--border-1);
+  border-radius: var(--radius-3);
+  color: var(--text-3);
+}
+
+.warehouse-empty-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-3);
+  opacity: 0.6;
+}
+
+.warehouse-empty h3 {
+  color: var(--text-2);
+  font-size: 16px;
+  margin-bottom: var(--space-2);
+}
+
+.warehouse-empty p {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.warehouse-empty strong {
+  color: var(--warehouse);
+}
+
+/* Tarjeta de trabajo */
+.work-item {
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  border-left: 3px solid var(--warehouse);
+  border-radius: var(--radius-3);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: all var(--transition-base);
+}
+
+.work-item:hover {
+  border-color: var(--border-2);
+  border-left-color: var(--warehouse);
+  box-shadow: var(--shadow-2);
+}
+
+.work-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.work-brand {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 3px 8px;
+  border-radius: var(--radius-1);
+}
+
+.brand-random {
+  background: rgba(163, 113, 247, 0.15);
+  color: var(--factory);
+}
+
+.brand-express {
+  background: rgba(248, 81, 73, 0.15);
+  color: var(--danger);
+}
+
+.work-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+}
+
+.work-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-1);
+  line-height: 1.35;
+}
+
+.work-excerpt {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.5;
+}
+
+.work-meta {
+  font-size: 11px;
+  color: var(--text-3);
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.work-actions {
+  display: flex;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-1);
+  margin-top: auto;
+}
+
+.work-actions .btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Badges de análisis */
+.work-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: var(--space-1) 0;
+}
+
+.work-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.work-badge-urgent {
+  background: rgba(248, 81, 73, 0.15);
+  color: var(--danger);
+}
+
+.work-badge-interview {
+  background: rgba(88, 166, 255, 0.15);
+  color: var(--info);
+}
+
+.work-badge-quote {
+  background: rgba(163, 113, 247, 0.15);
+  color: var(--factory);
+}
+
+.work-badge-cat {
+  background: color-mix(in srgb, var(--cat-color) 15%, transparent);
+  color: var(--cat-color);
+}
+
+/* Keywords */
+.work-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: var(--space-2) 0;
+}
+
+.keyword-chip {
+  font-size: 10px;
+  padding: 2px 7px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: 999px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+}
+
+.btn-star {
+  background: transparent;
+  border-color: rgba(210, 153, 34, 0.4);
+  color: var(--warning);
+}
+
+.btn-star:hover:not(:disabled) {
+  background: rgba(210, 153, 34, 0.15);
+  border-color: var(--warning);
+}
+
+.btn-star.is-starred {
+  background: rgba(210, 153, 34, 0.2);
+  color: var(--warning);
+  border-color: var(--warning);
+}
+
+.work-actions .btn {
+  padding: 5px 10px;
+  font-size: 11px;
+}
+
+/* Panel de estadísticas */
+.warehouse-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.wh-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-2);
+}
+
+.wh-stat-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  border-left: 3px solid var(--stat-color);
+  border-radius: var(--radius-2);
+  transition: all var(--transition-fast);
+}
+
+.wh-stat-card:hover {
+  background: var(--bg-2);
+  border-color: var(--border-2);
+  border-left-color: var(--stat-color);
+}
+
+.wh-stat-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.wh-stat-info {
+  min-width: 0;
+}
+
+.wh-stat-value {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-1);
+  line-height: 1;
+}
+
+.wh-stat-label {
+  font-size: 10px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-top: 3px;
+}
+
+/* Distribución por categorías */
+.wh-cats {
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  padding: var(--space-3) var(--space-4);
+}
+
+.wh-cats-title {
+  font-size: 10px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  margin-bottom: var(--space-3);
+}
+
+.wh-cat-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+}
+
+.wh-cat-name {
+  font-size: 11px;
+  color: var(--text-2);
+  width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wh-cat-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.wh-cat-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 400ms ease;
+}
+
+.wh-cat-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  min-width: 24px;
+  text-align: right;
+}

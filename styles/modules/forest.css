@@ -1,0 +1,595 @@
+/* Cabecera del módulo */
+.module-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.module-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--forest);
+  margin-bottom: var(--space-1);
+}
+
+/* Barra de herramientas */
+.forest-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.region-tabs {
+  display: flex;
+  gap: var(--space-1);
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  padding: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.region-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-2);
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.region-btn:hover {
+  background: var(--bg-2);
+  color: var(--text-1);
+}
+
+.region-btn.is-active {
+  background: var(--bg-3);
+  color: var(--text-1);
+  box-shadow: inset 0 0 0 1px var(--border-2);
+}
+
+.forest-search {
+  flex: 1;
+  min-width: 220px;
+  padding: 9px 14px;
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: 13px;
+  transition: all var(--transition-fast);
+}
+
+.forest-search:focus {
+  outline: none;
+  border-color: var(--forest);
+  box-shadow: 0 0 0 3px var(--forest-glow);
+}
+
+/* Lista de fuentes */
+.forest-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-3);
+}
+
+.source-card {
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  padding: var(--space-4);
+  transition: all var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.source-card:hover {
+  border-color: var(--border-2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+
+.source-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.source-region {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.source-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.source-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-1);
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+
+.source-url {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-status {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 3px 8px;
+  border-radius: var(--radius-1);
+  background: var(--bg-2);
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+.source-status-active { background: rgba(63, 185, 80, 0.15); color: var(--success); }
+.source-status-error  { background: rgba(248, 81, 73, 0.15); color: var(--danger); }
+.source-status-paused { background: rgba(210, 153, 34, 0.15); color: var(--warning); }
+
+.source-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.source-cat {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-1);
+  background: color-mix(in srgb, var(--cat-color) 15%, transparent);
+  color: var(--cat-color);
+}
+
+.source-cat-none {
+  font-size: 10px;
+  color: var(--text-4);
+  font-style: italic;
+}
+
+.forest-empty {
+  grid-column: 1 / -1;
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--text-3);
+  background: var(--bg-1);
+  border: 1px dashed var(--border-1);
+  border-radius: var(--radius-3);
+}
+
+/* Sobrescribir el placeholder genérico del module-view para el Bosque */
+.module-view[data-module-view="forest"] .placeholder-card {
+  display: none;
+}
+
+/* Botones de acción sobre cada tarjeta */
+.source-card-actions {
+  display: flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  color: var(--text-2);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.icon-btn:hover {
+  background: var(--bg-3);
+  color: var(--text-1);
+  border-color: var(--border-2);
+}
+
+.source-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: var(--space-2);
+}
+
+/* Modal del editor de fuentes */
+.source-editor-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.form-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.form-field input,
+.form-field select {
+  padding: 9px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: 13px;
+  transition: all var(--transition-fast);
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  outline: none;
+  border-color: var(--forest);
+  box-shadow: 0 0 0 3px var(--forest-glow);
+}
+
+/* Categorías como checkboxes en grilla */
+#se-categories {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: 280px;
+  overflow-y: auto;
+  padding: var(--space-3);
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+}
+
+.cat-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.cat-group-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-4);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--border-1);
+}
+
+.cat-group-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-1) var(--space-3);
+}
+
+.cat-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--text-2);
+  cursor: pointer;
+  padding: 3px 4px;
+  border-radius: var(--radius-1);
+  transition: background var(--transition-fast);
+}
+
+.cat-checkbox:hover {
+  background: var(--bg-3);
+}
+
+.cat-checkbox input[type="checkbox"] {
+  accent-color: var(--forest);
+  cursor: pointer;
+}
+
+/* Header del módulo con acciones a la derecha */
+.module-header-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* Sección de noticias */
+.forest-news-section {
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border-1);
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.badge-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--forest-glow);
+  color: var(--forest);
+  padding: 2px 8px;
+  border-radius: var(--radius-1);
+}
+
+.forest-news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-3);
+}
+
+/* Tarjeta de noticia */
+.news-card {
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  flex-direction: column;
+}
+
+.news-card:hover {
+  border-color: var(--forest);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+
+.news-thumb {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  background: var(--bg-2);
+  display: block;
+}
+
+.news-thumb-placeholder {
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+  color: var(--text-4);
+  background: linear-gradient(135deg, var(--bg-2), var(--bg-3));
+}
+
+.news-body {
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.news-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+.news-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+}
+
+.news-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-1);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.news-excerpt {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Modal de noticia */
+.news-modal-img {
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+  border-radius: var(--radius-2);
+  margin-bottom: var(--space-4);
+}
+
+.news-modal-meta {
+  display: flex;
+  gap: var(--space-3);
+  font-size: 12px;
+  color: var(--text-3);
+  margin-bottom: var(--space-2);
+}
+
+.news-modal-excerpt {
+  color: var(--text-2);
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+/* Botones de acción en tarjetas de noticia */
+.news-card-actions {
+  display: flex;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  margin-top: auto;
+  border-top: 1px solid var(--border-1);
+}
+
+.btn-forest {
+  background: rgba(63, 185, 80, 0.12);
+  border-color: rgba(63, 185, 80, 0.4);
+  color: var(--forest);
+  width: 100%;
+}
+
+.btn-forest:hover:not(:disabled) {
+  background: rgba(63, 185, 80, 0.22);
+  border-color: var(--forest);
+}
+
+.btn-forest:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* Toasts */
+.toast-container {
+  position: fixed;
+  bottom: var(--space-5);
+  right: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--bg-3);
+  border: 1px solid var(--border-2);
+  border-left: 3px solid var(--quality);
+  border-radius: var(--radius-2);
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-1);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-3);
+  max-width: 360px;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: all var(--transition-base);
+}
+
+.toast-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-success {
+  border-left-color: var(--success);
+}
+
+.news-card-actions {
+  display: flex;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  margin-top: auto;
+  border-top: 1px solid var(--border-1);
+}
+
+.btn-forest {
+  background: rgba(63, 185, 80, 0.12);
+  border-color: rgba(63, 185, 80, 0.4);
+  color: var(--forest);
+  width: 100%;
+}
+
+.btn-forest:hover:not(:disabled) {
+  background: rgba(63, 185, 80, 0.22);
+  border-color: var(--forest);
+}
+
+.btn-forest:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.toast-container {
+  position: fixed;
+  bottom: var(--space-5);
+  right: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--bg-3);
+  border: 1px solid var(--border-2);
+  border-left: 3px solid var(--quality);
+  border-radius: var(--radius-2);
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-1);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-3);
+  max-width: 360px;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: all var(--transition-base);
+}
+
+.toast-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-success {
+  border-left-color: var(--success);
+}

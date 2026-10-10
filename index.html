@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content Factory</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/modules/forest.css">
+  <link rel="stylesheet" href="styles/modules/warehouse.css">
+  <link rel="stylesheet" href="styles/modules/factory.css">
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-mark">CF</div>
+        <div class="brand-text">
+          <h1>Content Factory</h1>
+          <p>Sistema de producción de contenidos</p>
+        </div>
+      </div>
+            <div class="header-status">
+        <span class="status-pill" id="boot-counter">Verificando base de datos…</span>
+        <button class="header-btn" id="db-info-btn" title="Estado de la base de datos">📊</button>
+        <button class="header-btn header-btn-danger" id="db-reset-btn" title="Reset de desarrollo (borra todo)">🗑️</button>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <nav class="module-nav">
+        <div class="module-nav-title">Módulos</div>
+
+        <button class="module-item is-active" data-module="forest">
+          <span class="module-icon">🌲</span>
+          <span class="module-name">Bosque</span>
+          <span class="module-count">0</span>
+        </button>
+
+        <button class="module-item" data-module="warehouse">
+          <span class="module-icon">📦</span>
+          <span class="module-name">Galpón</span>
+          <span class="module-count">0</span>
+        </button>
+
+        <button class="module-item" data-module="factory">
+          <span class="module-icon">🏭</span>
+          <span class="module-name">Fábrica</span>
+          <span class="module-count">0</span>
+        </button>
+
+        <button class="module-item" data-module="quality">
+          <span class="module-icon">✅</span>
+          <span class="module-name">Calidad</span>
+          <span class="module-count">0</span>
+        </button>
+      </nav>
+
+      <main class="app-main">
+                <section class="module-view is-active" data-module-view="forest">
+          <div id="forest-root"></div>
+        </section>
+
+                <section class="module-view" data-module-view="warehouse">
+          <div id="warehouse-root"></div>
+        </section>
+
+                <section class="module-view" data-module-view="factory">
+          <div id="factory-root"></div>
+        </section>
+
+        <section class="module-view" data-module-view="quality">
+          <h2>Control de Calidad y Entrega</h2>
+          <p class="module-subtitle">Inspección, inventario y despacho.</p>
+          <div class="placeholder-card">
+            <p>Este módulo se construye en la Fase 5.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+    </div>
+
+  <!-- Modal: Estado de la base de datos -->
+  <div class="modal-overlay" id="db-info-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Estado de la base de datos</h3>
+        <button class="modal-close" data-close-modal="db-info-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <table class="db-table">
+          <thead>
+            <tr>
+              <th>Store</th>
+              <th style="text-align:right">Registros</th>
+            </tr>
+          </thead>
+          <tbody id="db-info-tbody">
+            <tr><td colspan="2" class="db-empty">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-close-modal="db-info-modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Confirmar reset -->
+  <div class="modal-overlay" id="db-reset-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Resetear base de datos</h3>
+        <button class="modal-close" data-close-modal="db-reset-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-2); line-height: 1.6;">
+          Esta acción <strong style="color: var(--danger);">borra todos los datos</strong> guardados en la aplicación: fuentes, noticias, piezas, plantillas, logos, reglas y registros.
+        </p>
+        <p style="color: var(--text-3); margin-top: var(--space-3); font-size: 12px;">
+          Se usa únicamente en desarrollo para empezar de cero. En la versión final esto no será accesible.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-close-modal="db-reset-modal">Cancelar</button>
+        <button class="btn btn-danger" id="db-reset-confirm">Sí, borrar todo</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- Modal: Editor de fuente -->
+  <div class="modal-overlay" id="source-editor-modal">
+    <div class="modal" style="max-width: 640px;">
+      <div class="modal-header">
+        <h3 id="source-editor-title">Nueva fuente</h3>
+        <button class="modal-close">×</button>
+      </div>
+      <form id="source-editor-form">
+        <div class="modal-body source-editor-body">
+          <div class="form-field">
+            <label for="se-name">Nombre</label>
+            <input type="text" id="se-name" placeholder="Ej: Clarín Último Momento" required>
+          </div>
+          <div class="form-field">
+            <label for="se-url">URL del feed RSS</label>
+            <input type="url" id="se-url" placeholder="https://..." required>
+          </div>
+          <div class="form-field">
+            <label for="se-region">Región</label>
+            <select id="se-region"></select>
+          </div>
+          <div class="form-field">
+            <label>Categorías</label>
+            <div id="se-categories"></div>
+          </div>
+        </div>
+        <div class="modal-footer" style="justify-content: space-between;">
+          <button type="button" class="btn btn-danger" id="source-editor-delete" style="display:none;">
+            Eliminar fuente
+          </button>
+          <div style="display: flex; gap: var(--space-2);">
+            <button type="button" class="btn" id="source-editor-cancel">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+    <!-- Modal: Detalle de noticia -->
+  <div class="modal-overlay" id="news-modal">
+    <div class="modal" style="max-width: 640px;">
+      <div class="modal-header">
+        <h3 id="news-modal-title">Título</h3>
+        <button class="modal-close">×</button>
+      </div>
+      <div class="modal-body" id="news-modal-body"></div>
+      <div class="modal-footer">
+        <a href="#" target="_blank" rel="noopener" class="btn btn-primary" id="news-modal-link">
+          Abrir nota original ↗
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Ingresar por link -->
+  <div class="modal-overlay" id="link-modal">
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header">
+        <h3>Ingresar artículo por link</h3>
+        <button class="modal-close" data-close-modal="link-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label for="link-input">URL del artículo</label>
+          <input type="url" id="link-input" placeholder="https://sitio.com/articulo...">
+        </div>
+        <p id="link-status" style="font-size:12px;color:var(--text-3);margin-top:var(--space-2);"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-close-modal="link-modal">Cancelar</button>
+        <button class="btn btn-primary" id="link-confirm">Extraer y cargar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Ingresar por texto -->
+  <div class="modal-overlay" id="text-modal">
+    <div class="modal" style="max-width:640px">
+      <div class="modal-header">
+        <h3>Ingresar texto manual</h3>
+        <button class="modal-close" data-close-modal="text-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label for="manual-title">Título</label>
+          <input type="text" id="manual-title" placeholder="Título de la nota (opcional)">
+        </div>
+        <div class="form-field" style="margin-top:var(--space-3)">
+          <label for="manual-body">Cuerpo del texto</label>
+          <textarea id="manual-body" rows="10" style="width:100%;background:var(--bg-2);border:1px solid var(--border-1);border-radius:6px;color:var(--text-1);padding:10px;font-family:inherit;font-size:13px;resize:vertical" placeholder="Pegá acá el texto completo de la nota, comunicado o gacetilla..."></textarea>
+        </div>
+        <div class="form-field" style="margin-top:var(--space-3)">
+          <label for="manual-image">URL de imagen (opcional)</label>
+          <input type="url" id="manual-image" placeholder="https://sitio.com/imagen.jpg">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-close-modal="text-modal">Cancelar</button>
+        <button class="btn btn-primary" id="manual-confirm">Cargar texto</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js?v=32"></script>
+</body>
+</html>
