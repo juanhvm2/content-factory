@@ -1,10 +1,10 @@
 // app.js
 // Punto de entrada de la aplicación.
 
-import * as store from './core/store.js??v=33';
-import { initForest } from './modules/forest/forest_v2.js??v=33';
-import { initWarehouse } from './modules/warehouse/warehouse.js??v=33';
-import { initFactory } from './modules/factory/factory.js??v=33';
+import * as store from './core/store.js???v=34';
+import { initForest } from './modules/forest/forest_v2.js???v=34';
+import { initWarehouse } from './modules/warehouse/warehouse.js???v=34';
+import { initFactory } from './modules/factory/factory.js???v=34';
 
 // --- Navegación entre módulos ---
 function setupNavigation() {

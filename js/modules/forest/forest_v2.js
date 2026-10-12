@@ -1,15 +1,15 @@
 // forest.js
 // Módulo Bosque de Fuentes. Catálogo + consulta RSS + noticias.
 
-import * as store from '../../core/store.js??v=33';
-import { SEED_SOURCES } from '../../data/sources.js??v=33';
-import { REGIONS, getRegion, getCategory } from '../../data/categories.js??v=33';
-import { openSourceEditor, setupSourceEditor } from './source-editor.js??v=33';
-import { fetchSourceNews } from '../../services/rss-service.js??v=33';
-import { addWorkItem } from '../warehouse/warehouse.js??v=33';
-import { detectBrand, getBrand, BRANDS } from '../../data/brands.js??v=33';
-import { fetchWPSource } from '../../services/wp-service.js??v=33';
-import { extractFromLink } from '../../services/link-extractor.js??v=33';
+import * as store from '../../core/store.js???v=34';
+import { SEED_SOURCES } from '../../data/sources.js???v=34';
+import { REGIONS, getRegion, getCategory } from '../../data/categories.js???v=34';
+import { openSourceEditor, setupSourceEditor } from './source-editor.js???v=34';
+import { fetchSourceNews } from '../../services/rss-service.js???v=34';
+import { addWorkItem } from '../warehouse/warehouse.js???v=34';
+import { detectBrand, getBrand, BRANDS } from '../../data/brands.js???v=34';
+import { fetchWPSource } from '../../services/wp-service.js???v=34';
+import { extractFromLink } from '../../services/link-extractor.js???v=34';
 
 const state = {
   sources: [],
@@ -19,9 +19,16 @@ const state = {
   search: '',
   newsSearch: '',
   isFetching: false,
+  sourceOffset: parseInt(localStorage.getItem('forest_source_offset') || '0', 10),
+  fetchProgress: {
+    current: 0,
+    total: 0,
+    startedAt: null,
+    newsCount: 0,
+  },
 };
 
-const MAX_SOURCES_PER_FETCH = 8;
+const MAX_SOURCES_PER_FETCH = 15;
 const MAX_NEWS_AGE_HOURS = 48; // Solo noticias de las últimas 48 horas
 
 // --- Cargar fuentes (sembrar si es la primera vez) ---
@@ -407,19 +414,44 @@ async function fetchAllActive() {
     btn.textContent = 'Consultando…';
   }
 
-  const active = state.sources
-    .filter((s) => s.status !== 'paused')
-    .slice(0, MAX_SOURCES_PER_FETCH);
+  // Fuentes activas (excluye pausadas)
+  const allActive = state.sources.filter((s) => s.status !== 'paused');
+  if (allActive.length === 0) {
+    console.log('[forest] No hay fuentes activas para consultar');
+    state.isFetching = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '🔄 Actualizar todo';
+    }
+    return;
+  }
 
-  console.log(`[forest] Consultando ${active.length} fuentes activas`);
+  // Rotación: empezar desde donde quedamos la vez anterior
+  const total = allActive.length;
+  const offset = state.sourceOffset % total;
+  const sliceSize = Math.min(MAX_SOURCES_PER_FETCH, total);
+  const toFetch = [];
+  for (let i = 0; i < sliceSize; i++) {
+    toFetch.push(allActive[(offset + i) % total]);
+  }
+
+  console.log(
+    `[forest] Consultando ${toFetch.length} fuentes (bloque ${offset + 1}-${offset + sliceSize} de ${total})`
+  );
+
+  // Inicializar progreso
+  state.fetchProgress.current = 0;
+  state.fetchProgress.total = toFetch.length;
+  state.fetchProgress.startedAt = Date.now();
+  state.fetchProgress.newsCount = 0;
+  renderFetchProgress();
 
   let totalNew = 0;
-  for (const source of active) {
+  for (const source of toFetch) {
     try {
-            const items = await fetchNews(source);
+      const items = await fetchNews(source);
       let saved = 0;
       for (const item of items) {
-        // Filtrar: solo noticias de las últimas N horas
         if (!isNewsFresh(item)) continue;
         const existing = await store.get('news', item.id);
         if (!existing) {
@@ -428,6 +460,7 @@ async function fetchAllActive() {
         }
       }
       totalNew += saved;
+      state.fetchProgress.newsCount = totalNew;
       await store.set('sources', source.id, {
         ...source,
         lastFetch: new Date().toISOString(),
@@ -437,9 +470,22 @@ async function fetchAllActive() {
       console.warn(`[forest] Falla en ${source.name}:`, error.message);
       await store.set('sources', source.id, { ...source, status: 'error' });
     }
+
+    state.fetchProgress.current++;
+    renderFetchProgress();
   }
 
-  console.log(`[forest] ${totalNew} noticias nuevas`);
+  // Avanzar el offset para la próxima consulta
+  state.sourceOffset = (offset + sliceSize) % total;
+  localStorage.setItem('forest_source_offset', String(state.sourceOffset));
+
+  console.log(`[forest] ${totalNew} noticias nuevas (offset avanzado a ${state.sourceOffset})`);
+
+  // Ocultar la barra de progreso después de un delay
+  setTimeout(() => {
+    state.fetchProgress.startedAt = null;
+    renderFetchProgress();
+  }, 2500);
 
   if (btn) {
     btn.disabled = false;
@@ -462,6 +508,64 @@ function setSourceStatus(id, status, label) {
     statusEl.className = `source-status source-status-${status}`;
     statusEl.textContent = label;
   }
+}
+
+// --- Barra de progreso del fetch ---
+function renderFetchProgress() {
+  const container = document.getElementById('forest-fetch-progress');
+  if (!container) return;
+
+  const p = state.fetchProgress;
+
+  // Sin fetch activo: ocultar
+  if (!p.startedAt || p.total === 0) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+
+  const pct = Math.round((p.current / p.total) * 100);
+  const elapsed = (Date.now() - p.startedAt) / 1000;
+
+  // Estimación de tiempo restante (lineal)
+  let remainingSec = 0;
+  if (p.current > 0) {
+    const perSource = elapsed / p.current;
+    remainingSec = Math.round(perSource * (p.total - p.current));
+  } else {
+    // Estimación inicial conservadora: ~2.5s por fuente
+    remainingSec = Math.round(2.5 * p.total);
+  }
+
+  const formatTime = (sec) => {
+    if (sec <= 0) return '0s';
+    if (sec < 60) return `${sec}s`;
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return s > 0 ? `${m}m ${s}s` : `${m}m`;
+  };
+
+  const finished = p.current >= p.total;
+
+  container.innerHTML = `
+    <div class="forest-fetch-bar">
+      <div class="forest-fetch-bar-info">
+        <span class="forest-fetch-bar-label">
+          ${finished ? '✅ Completado' : '🔄 Consultando fuentes'}
+        </span>
+        <span class="forest-fetch-bar-stats">
+          ${p.current}/${p.total} fuentes
+          ${!finished ? ` · ~${formatTime(remainingSec)} restantes` : ''}
+          ${p.newsCount > 0 ? ` · ${p.newsCount} noticias nuevas` : ''}
+        </span>
+      </div>
+      <div class="forest-fetch-bar-track">
+        <div class="forest-fetch-bar-fill" style="width: ${pct}%"></div>
+      </div>
+      <div class="forest-fetch-bar-pct">${pct}%</div>
+    </div>
+  `;
 }
 
 // --- Enviar al Galpón ---
@@ -550,6 +654,9 @@ function updateModuleCounts() {
 
   const newsCountEl = document.getElementById('forest-news-count');
   if (newsCountEl) newsCountEl.textContent = state.news.length;
+
+  const sourcesBadge = document.getElementById('forest-sources-count');
+  if (sourcesBadge) sourcesBadge.textContent = state.sources.length;
 }
 
 // --- Filtros de UI ---
@@ -739,19 +846,36 @@ function injectForestUI() {
       </div>
     </div>
 
-    <div class="forest-toolbar">
-      <div class="region-tabs" id="forest-regions">
-        <button class="region-btn is-active" data-region="all">Todas</button>
-        ${REGIONS.map(
-          (r) => `<button class="region-btn" data-region="${r.id}">${r.flag} ${r.name}</button>`
-        ).join('')}
-      </div>
-      <input type="text" id="forest-search" class="forest-search" placeholder="Buscar fuentes…" />
-    </div>
+    <div id="forest-fetch-progress" class="forest-fetch-progress" style="display:none;"></div>
 
-    <div class="forest-list" id="forest-list">
-      <div class="forest-empty"><p>Cargando fuentes…</p></div>
-    </div>
+    <section class="forest-sources-section" id="forest-sources-section">
+      <div class="forest-section-header" id="forest-sources-toggle">
+        <div class="forest-section-title">
+          <span class="forest-section-icon">🌲</span>
+          <span>Fuentes</span>
+          <span class="forest-section-badge" id="forest-sources-count">0</span>
+        </div>
+        <button class="forest-toggle-btn" aria-label="Mostrar/ocultar fuentes">
+          <span id="forest-toggle-chevron">▼</span>
+        </button>
+      </div>
+
+      <div class="forest-sources-body" id="forest-sources-body">
+        <div class="forest-toolbar">
+          <div class="region-tabs" id="forest-regions">
+            <button class="region-btn is-active" data-region="all">Todas</button>
+            ${REGIONS.map(
+              (r) => `<button class="region-btn" data-region="${r.id}">${r.flag} ${r.name}</button>`
+            ).join('')}
+          </div>
+          <input type="text" id="forest-search" class="forest-search" placeholder="Buscar fuentes…" />
+        </div>
+
+        <div class="forest-list" id="forest-list">
+          <div class="forest-empty"><p>Cargando fuentes…</p></div>
+        </div>
+      </div>
+    </section>
 
     <section class="forest-news-section">
       <div class="module-header">
@@ -773,6 +897,26 @@ function injectForestUI() {
       </div>
     </section>
   `;
+
+  setupSourcesToggle();
+}
+
+// --- Toggle del panel de fuentes (colapsable) ---
+function setupSourcesToggle() {
+  const section = document.getElementById('forest-sources-section');
+  const toggle = document.getElementById('forest-sources-toggle');
+  if (!section || !toggle) return;
+
+  // Estado inicial: PLEGADO (a menos que el usuario lo haya dejado abierto)
+  const savedState = localStorage.getItem('forest_sources_open');
+  const isOpen = savedState === 'true';
+  section.classList.toggle('is-open', isOpen);
+
+  toggle.addEventListener('click', () => {
+    const nowOpen = !section.classList.contains('is-open');
+    section.classList.toggle('is-open', nowOpen);
+    localStorage.setItem('forest_sources_open', String(nowOpen));
+  });
 }
 
 // --- Init ---

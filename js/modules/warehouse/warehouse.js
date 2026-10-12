@@ -2,10 +2,10 @@
 // Módulo Galpón de Recolección. Recibe noticias del Bosque
 // y las organiza como trabajos en cola de producción.
 
-import * as store from '../../core/store.js??v=33';
-import { getRegion, getCategory } from '../../data/categories.js??v=33';
-import { analyzeNews } from '../../services/classifier.js??v=33';
-import { findDuplicate } from '../../services/deduplicator.js??v=33';
+import * as store from '../../core/store.js???v=34';
+import { getRegion, getCategory } from '../../data/categories.js???v=34';
+import { analyzeNews } from '../../services/classifier.js???v=34';
+import { findDuplicate } from '../../services/deduplicator.js???v=34';
 
 const state = {
   items: [],
@@ -405,7 +405,7 @@ export async function initWarehouse() {
 
 // --- Probar el motor determinista ---
 async function testEngine(id) {
-  const { generateCopys } = await import('../../services/rules-engine.js??v=33');
+  const { generateCopys } = await import('../../services/rules-engine.js???v=34');
   const item = await store.get('workItems', id);
   if (!item) return;
 
@@ -490,7 +490,7 @@ function showCopyModal(copys, title) {
 }
 
 async function sendToFactory(id) {
-  const { loadWorkItemIntoFactory } = await import('../factory/factory.js??v=33');
+  const { loadWorkItemIntoFactory } = await import('../factory/factory.js???v=34');
   // Cambiar de módulo visualmente
   document.querySelectorAll('.module-item').forEach((i) => {
     i.classList.toggle('is-active', i.dataset.module === 'factory');

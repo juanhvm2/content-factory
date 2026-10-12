@@ -593,3 +593,206 @@
 .toast-success {
   border-left-color: var(--success);
 }
+
+/* ===================================================== */
+/* PANEL DE FUENTES COLAPSABLE                            */
+/* ===================================================== */
+
+.forest-sources-section {
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  margin-bottom: var(--space-5);
+  overflow: hidden;
+  transition: all var(--transition-base);
+}
+
+.forest-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-2);
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition-fast);
+  border-bottom: 1px solid transparent;
+}
+
+.forest-section-header:hover {
+  background: var(--bg-3);
+}
+
+.forest-sources-section.is-open .forest-section-header {
+  border-bottom-color: var(--border-1);
+}
+
+.forest-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.forest-section-icon {
+  font-size: 18px;
+}
+
+.forest-section-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  background: var(--forest-glow);
+  color: var(--forest);
+  border-radius: var(--radius-1);
+}
+
+.forest-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-3);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-1);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+}
+
+.forest-toggle-btn:hover {
+  background: var(--bg-4);
+  color: var(--text-1);
+}
+
+.forest-sources-section #forest-toggle-chevron {
+  display: inline-block;
+  transition: transform var(--transition-base);
+  font-size: 12px;
+}
+
+.forest-sources-section.is-open #forest-toggle-chevron {
+  transform: rotate(180deg);
+}
+
+.forest-sources-body {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 350ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 250ms ease,
+              padding 250ms ease;
+  padding: 0 var(--space-4);
+}
+
+.forest-sources-section.is-open .forest-sources-body {
+  max-height: 3000px;
+  opacity: 1;
+  padding: var(--space-4);
+}
+
+/* ===================================================== */
+/* BARRA DE PROGRESO DEL FETCH                            */
+/* ===================================================== */
+
+.forest-fetch-progress {
+  margin-bottom: var(--space-4);
+  animation: fetchProgressIn 300ms ease;
+}
+
+@keyframes fetchProgressIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.forest-fetch-bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 12px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  border-left: 3px solid var(--forest);
+  border-radius: var(--radius-3);
+  align-items: center;
+}
+
+.forest-fetch-bar-info {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.forest-fetch-bar-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.forest-fetch-bar-stats {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.forest-fetch-bar-track {
+  grid-column: 1;
+  height: 8px;
+  background: var(--bg-3);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.forest-fetch-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--forest), var(--info));
+  border-radius: 4px;
+  transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.forest-fetch-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  animation: forestBarShimmer 1.6s linear infinite;
+}
+
+@keyframes forestBarShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.forest-fetch-bar-pct {
+  grid-column: 2;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--forest);
+  min-width: 48px;
+  text-align: right;
+}
