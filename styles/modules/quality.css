@@ -1,0 +1,319 @@
+/* ===================================================== */
+/* MÓDULO CALIDAD — Kanban                                */
+/* ===================================================== */
+
+.module-view[data-module-view="quality"].is-active {
+  padding: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.module-view[data-module-view="quality"] .module-header {
+  flex-shrink: 0;
+}
+
+/* ---------- KANBAN ---------- */
+.quality-kanban {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(220px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+  min-height: 0;
+}
+
+.quality-column {
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.quality-column-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--col-color, var(--border-2));
+  background: var(--bg-2);
+  border-radius: var(--radius-3) var(--radius-3) 0 0;
+  flex-shrink: 0;
+}
+
+.quality-column-icon {
+  font-size: 16px;
+}
+
+.quality-column-title {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-1);
+}
+
+.quality-column-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  background: var(--bg-0);
+  color: var(--col-color, var(--text-2));
+  border-radius: 10px;
+  border: 1px solid var(--border-1);
+}
+
+.quality-column-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.quality-column-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.quality-column-body::-webkit-scrollbar-thumb {
+  background: var(--bg-4);
+  border-radius: 2px;
+}
+
+.quality-column-empty {
+  font-size: 11px;
+  color: var(--text-4);
+  font-style: italic;
+  text-align: center;
+  padding: 20px 8px;
+}
+
+.quality-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-3);
+}
+
+/* ---------- TARJETA DE PIEZA ---------- */
+.quality-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  min-height: 320px;
+}
+
+.quality-card:hover {
+  border-color: var(--factory);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+
+.quality-card-thumb {
+  width: 100%;
+  min-height: 180px;
+  max-height: 180px;
+  background: var(--bg-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-1);
+  flex-shrink: 0;
+}
+
+.quality-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.quality-card-thumb-placeholder {
+  font-size: 32px;
+  opacity: 0.4;
+}
+
+.quality-card-body {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.quality-card-brand {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: var(--radius-1);
+  align-self: flex-start;
+}
+
+.quality-brand-random {
+  background: rgba(163, 113, 247, 0.15);
+  color: var(--factory);
+}
+
+.quality-brand-express {
+  background: rgba(248, 81, 73, 0.15);
+  color: var(--danger);
+}
+
+.quality-card-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-1);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.quality-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: var(--text-3);
+  padding-top: 4px;
+  border-top: 1px solid var(--border-soft, var(--border-1));
+}
+
+.quality-card-format {
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.quality-card-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 1400px) {
+  .quality-kanban {
+    grid-template-columns: repeat(5, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .quality-kanban {
+    grid-template-columns: repeat(5, 240px);
+  }
+}
+
+/* Header actions en Calidad */
+.module-view[data-module-view="quality"] .module-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.btn-cleanup {
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: var(--warning);
+}
+
+.btn-cleanup:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.22);
+  border-color: var(--warning);
+}
+
+.btn-cleanup:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Acciones en las tarjetas */
+.quality-card-actions {
+  display: flex;
+  gap: 4px;
+  padding-top: 8px;
+  margin-top: auto;
+  border-top: 1px solid var(--border-1);
+  flex-wrap: wrap;
+}
+
+.quality-action-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 5px 6px;
+  background: var(--bg-3);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-1);
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quality-action-btn:hover {
+  background: var(--bg-4);
+  color: var(--text-1);
+}
+
+.quality-action-approve {
+  color: var(--success);
+  border-color: rgba(74, 222, 128, 0.4);
+}
+.quality-action-approve:hover {
+  background: rgba(74, 222, 128, 0.15);
+  border-color: var(--success);
+}
+
+.quality-action-back {
+  color: var(--warning);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+.quality-action-back:hover {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: var(--warning);
+}
+
+.quality-action-discard {
+  color: var(--danger);
+  border-color: rgba(248, 81, 73, 0.4);
+}
+.quality-action-discard:hover {
+  background: rgba(248, 81, 73, 0.15);
+  border-color: var(--danger);
+}
+
+.quality-action-delete {
+  color: var(--text-3);
+  border-color: var(--border-2);
+}
+.quality-action-delete:hover {
+  background: rgba(248, 81, 73, 0.15);
+  color: var(--danger);
+  border-color: var(--danger);
+}

@@ -714,3 +714,20 @@
   color: var(--factory);
   background: var(--factory-glow);
 }
+
+/* Botón Enviar a Calidad */
+.btn-quality {
+  background: rgba(74, 222, 128, 0.12);
+  border-color: rgba(74, 222, 128, 0.4);
+  color: var(--success);
+}
+
+.btn-quality:hover:not(:disabled) {
+  background: rgba(74, 222, 128, 0.22);
+  border-color: var(--success);
+}
+
+.btn-quality:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

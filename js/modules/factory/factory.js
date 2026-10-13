@@ -1,17 +1,18 @@
 // factory.js
 // Módulo Fábrica de Contenidos. Workspace unificado.
 
-import * as store from '../../core/store.js???v=34';
-import { extractRealContent } from '../../services/rules-engine.js???v=34';
+import * as store from '../../core/store.js?v=42';
+import { extractRealContent } from '../../services/rules-engine.js?v=42';
 import {
   saveWorkingState,
   loadWorkingState,
   listPresets,
   savePreset,
   deletePreset,
-} from './factory-persistence.js???v=34';
-import { loadAllLogos, saveLogoConfig, clearLogoOverride } from './factory-logos.js???v=34';
-import { exportCurrentSlide, exportAllAsZip } from './factory-exporter.js???v=34';
+} from './factory-persistence.js?v=42';
+import { loadAllLogos, saveLogoConfig, clearLogoOverride } from './factory-logos.js?v=42';
+import { exportCurrentSlide, exportAllAsZip } from './factory-exporter.js?v=42';
+import { savePiecesToQuality } from './factory-quality-bridge.js?v=42';
 
 // --- Configuración por defecto de cada formato ---
 const DEFAULT_FORMAT_CONFIG = {
@@ -475,8 +476,9 @@ function injectFactoryUI() {
             <span class="factory-workitem-empty">Sin trabajo cargado</span>
           </div>
         </div>
-        <div class="factory-topbar-actions">
+               <div class="factory-topbar-actions">
           <button class="btn btn-sm" id="factory-generate" disabled>⚡ Generar</button>
+          <button class="btn btn-sm btn-quality" id="factory-send-quality" disabled>📥 Enviar a Calidad</button>
           <button class="btn btn-sm btn-primary" id="factory-export" disabled>⬇️ Exportar</button>
         </div>
       </div>
@@ -523,10 +525,11 @@ function injectFactoryUI() {
     </div>
   `;
 
-  bindTopbar();
+   bindTopbar();
   bindToolbar();
   bindGenerateButton();
   bindExportButton();
+  bindQualityButton();
 }
 
 function bindTopbar() {
@@ -556,6 +559,70 @@ function bindExportButton() {
   const btn = document.getElementById('factory-export');
   if (!btn) return;
   btn.addEventListener('click', () => handleExport());
+}
+
+// --- Botón Enviar a Calidad ---
+function bindQualityButton() {
+  const btn = document.getElementById('factory-send-quality');
+  if (!btn) return;
+  btn.addEventListener('click', () => handleSendToQuality());
+}
+
+async function handleSendToQuality() {
+  const btn = document.getElementById('factory-send-quality');
+  const originalText = btn.innerHTML;
+
+  if (!state.currentWorkItem) {
+    alert('No hay trabajo cargado en la Fábrica.');
+    return;
+  }
+
+  const dims = FORMAT_DIMS[state.format];
+  const hasSlides = dims.slides && state.slides.length > 0;
+
+  // Si es carrusel o historias, preguntar si guarda solo el actual o todos
+  let mode = 'current';
+  if (hasSlides) {
+    const ok = confirm(
+      `¿Enviar TODOS los ${state.slides.length} slides a Calidad?\n\nAceptar = enviar todos.\nCancelar = enviar solo el slide actual.`
+    );
+    mode = ok ? 'all' : 'current';
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Guardando…';
+
+  try {
+    const result = await savePiecesToQuality(state, { mode });
+
+    // Actualizar el contador del módulo Calidad en la barra lateral
+    await updateQualityBadge();
+
+    btn.innerHTML = `✅ ${result.saved} enviada${result.saved !== 1 ? 's' : ''}`;
+    setTimeout(() => (btn.innerHTML = originalText), 2500);
+
+    console.log(`[factory] ${result.saved} piezas enviadas a Calidad`);
+  } catch (err) {
+    console.error('[factory] Error enviando a Calidad', err);
+    alert('Error al enviar a Calidad: ' + err.message);
+    btn.innerHTML = '❌ Error';
+    setTimeout(() => (btn.innerHTML = originalText), 2500);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// --- Actualiza el badge del módulo Calidad en la barra lateral ---
+async function updateQualityBadge() {
+  try {
+    const all = await store.getAll('pieces');
+    const el = document.querySelector('.module-item[data-module="quality"] .module-count');
+    if (el) el.textContent = all.length;
+    // Refrescar el tablero de Calidad si está visible
+    await refreshQuality();
+  } catch (err) {
+    console.warn('[factory] No se pudo actualizar badge de Calidad', err);
+  }
 }
 
 async function handleExport() {
@@ -689,9 +756,9 @@ function bindCanvasDrag() {
       return bounded + (v - bounded) * 0.3;
     };
 
-        updateActiveImgConfig({
-      imgOffsetX: clamp(rawX, -30, 30),
-      imgOffsetY: clamp(rawY, -30, 30),
+          updateActiveImgConfig({
+      imgOffsetX: clamp(rawX, -50, 50),
+      imgOffsetY: clamp(rawY, -50, 50),
     });
 
     if (!raf) {
@@ -706,11 +773,11 @@ function bindCanvasDrag() {
     if (!dragging) return;
     dragging = false;
     canvas.style.cursor = 'grab';
-        // Snap final dentro del rango duro
+            // Snap final dentro del rango duro
     const finalCfg = getActiveImgConfig();
     updateActiveImgConfig({
-      imgOffsetX: Math.max(-30, Math.min(30, finalCfg.imgOffsetX || 0)),
-      imgOffsetY: Math.max(-30, Math.min(30, finalCfg.imgOffsetY || 0)),
+      imgOffsetX: Math.max(-50, Math.min(50, finalCfg.imgOffsetX || 0)),
+      imgOffsetY: Math.max(-50, Math.min(50, finalCfg.imgOffsetY || 0)),
     });
     await renderCanvas();
     updateImagePanelSliders();
@@ -759,9 +826,11 @@ async function generateContent() {
     // 3. Renderizar
     await renderCanvas();
 
-    // 4. Habilitar exportar
+        // 4. Habilitar exportar + enviar a calidad
     const expBtn = document.getElementById('factory-export');
     if (expBtn) expBtn.disabled = false;
+    const qualBtn = document.getElementById('factory-send-quality');
+    if (qualBtn) qualBtn.disabled = false;
 
         // 5. Actualizar panel de textos
     renderTextPanel(content);
@@ -845,10 +914,12 @@ export async function loadWorkItemIntoFactory(workItemId) {
     `;
   }
 
-  const genBtn = document.getElementById('factory-generate');
+    const genBtn = document.getElementById('factory-generate');
   const expBtn = document.getElementById('factory-export');
+  const qualBtn = document.getElementById('factory-send-quality');
   if (genBtn) genBtn.disabled = false;
   if (expBtn) expBtn.disabled = true;
+  if (qualBtn) qualBtn.disabled = false;
 
   const placeholder = document.getElementById('factory-canvas-placeholder');
   if (placeholder) placeholder.style.display = 'none';
@@ -979,18 +1050,75 @@ function renderImagePanel() {
   const persistNow = () => {
     saveWorkingState(state).catch((err) => console.warn('[factory] persist falló', err));
   };
-    if (images.length === 0) {
+        if (images.length === 0) {
     panel.innerHTML = `
       <div class="factory-panel-section">
         <div class="factory-panel-section-title">Imagen del artículo</div>
-        <div class="factory-panel-empty" style="height:auto;padding:20px">
+        <div class="factory-panel-empty" style="height:auto;padding:16px">
           <div class="factory-panel-empty-icon">🖼️</div>
           <div class="factory-panel-empty-text">Sin imágenes disponibles</div>
-          <div class="factory-panel-empty-sub">La fuente no incluyó imágenes. Se usará un fondo genérico.</div>
+          <div class="factory-panel-empty-sub">Pegá una URL o usá la imagen actual del canvas.</div>
         </div>
         <button class="btn btn-sm" id="fi-url-btn" style="width:100%;margin-top:8px">🔗 Pegar URL de imagen</button>
       </div>
+
+      <div class="factory-panel-section">
+        <div class="factory-panel-section-title">Ajustes de imagen</div>
+
+        <div class="factory-field">
+          <label>Zoom <span id="fi-scale-val" style="color:var(--factory)">${cfg.imgScale || 100}%</span></label>
+          <input type="range" id="fi-scale" class="factory-input" min="50" max="200" step="5" value="${cfg.imgScale || 100}">
+        </div>
+
+        <div class="factory-field">
+          <label>Posición X</label>
+          <input type="range" id="fi-offx" class="factory-input" min="-50" max="50" step="1" value="${Math.round(cfg.imgOffsetX || 0)}">
+        </div>
+
+        <div class="factory-field">
+          <label>Posición Y</label>
+          <input type="range" id="fi-offy" class="factory-input" min="-50" max="50" step="1" value="${Math.round(cfg.imgOffsetY || 0)}">
+        </div>
+
+        <div class="factory-field">
+          <label>Alineación horizontal</label>
+          <div class="factory-btn-row">
+            <button class="factory-mini-btn ${cfg.imgAlign === 'left' ? 'is-active' : ''}" data-align="left">◧ Izq</button>
+            <button class="factory-mini-btn ${cfg.imgAlign === 'center' ? 'is-active' : ''}" data-align="center">◫ Centro</button>
+            <button class="factory-mini-btn ${cfg.imgAlign === 'right' ? 'is-active' : ''}" data-align="right">◨ Der</button>
+          </div>
+        </div>
+
+        <div class="factory-field">
+          <label>Alineación vertical</label>
+          <div class="factory-btn-row">
+            <button class="factory-mini-btn ${cfg.imgVAlign === 'top' ? 'is-active' : ''}" data-valign="top">⬒ Arr</button>
+            <button class="factory-mini-btn ${cfg.imgVAlign === 'center' ? 'is-active' : ''}" data-valign="center">▣ Medio</button>
+            <button class="factory-mini-btn ${cfg.imgVAlign === 'bottom' ? 'is-active' : ''}" data-valign="bottom">⬓ Abj</button>
+          </div>
+        </div>
+
+        <div class="factory-field">
+          <label>Opacidad</label>
+          <div class="factory-btn-row">
+            <button class="factory-mini-btn ${cfg.imgOpacity === 1 ? 'is-active' : ''}" data-op="1">100</button>
+            <button class="factory-mini-btn ${cfg.imgOpacity === 0.9 ? 'is-active' : ''}" data-op="0.9">90</button>
+            <button class="factory-mini-btn ${cfg.imgOpacity === 0.8 ? 'is-active' : ''}" data-op="0.8">80</button>
+            <button class="factory-mini-btn ${cfg.imgOpacity === 0.7 ? 'is-active' : ''}" data-op="0.7">70</button>
+          </div>
+        </div>
+
+        <div class="factory-field">
+          <label>Estilo</label>
+          <div class="factory-btn-row">
+            <button class="factory-mini-btn ${cfg.imgGray ? 'is-active' : ''}" id="fi-gray">◐ B/N</button>
+            <button class="factory-mini-btn" id="fi-reset">↻ Reset</button>
+          </div>
+        </div>
+      </div>
     `;
+
+        // Botón URL externa
     panel.querySelector('#fi-url-btn').addEventListener('click', () => {
       const url = prompt('URL de la imagen:');
       if (url) setImageFromUrl(url.trim());
@@ -1025,12 +1153,12 @@ function renderImagePanel() {
 
       <div class="factory-field">
         <label>Posición X</label>
-        <input type="range" id="fi-offx" class="factory-input" min="-30" max="30" step="1" value="${Math.round(cfg.imgOffsetX || 0)}">
+        <input type="range" id="fi-offx" class="factory-input" min="-50" max="50" step="1" value="${Math.round(cfg.imgOffsetX || 0)}">
       </div>
 
       <div class="factory-field">
         <label>Posición Y</label>
-        <input type="range" id="fi-offy" class="factory-input" min="-30" max="30" step="1" value="${Math.round(cfg.imgOffsetY || 0)}">
+        <input type="range" id="fi-offy" class="factory-input" min="-50" max="50" step="1" value="${Math.round(cfg.imgOffsetY || 0)}">
       </div>
 
       <div class="factory-field">
@@ -2021,3 +2149,6 @@ async function reloadLogos() {
 export function getFactoryState() {
   return state;
 }
+
+// --- Exponer renderCanvas para uso externo (bridge con Calidad) ---
+export const __renderCanvasForBridge = renderCanvas;

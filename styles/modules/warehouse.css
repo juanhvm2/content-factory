@@ -312,3 +312,27 @@
   min-width: 24px;
   text-align: right;
 }
+
+/* Botón de limpieza */
+.btn-cleanup {
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: var(--warning);
+}
+
+.btn-cleanup:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.22);
+  border-color: var(--warning);
+}
+
+.btn-cleanup:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Header actions en Galpón */
+.module-view[data-module-view="warehouse"] .module-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}

@@ -2,11 +2,11 @@
 // Módulo Galpón de Recolección. Recibe noticias del Bosque
 // y las organiza como trabajos en cola de producción.
 
-import * as store from '../../core/store.js???v=34';
-import { getRegion, getCategory } from '../../data/categories.js???v=34';
-import { analyzeNews } from '../../services/classifier.js???v=34';
-import { findDuplicate } from '../../services/deduplicator.js???v=34';
-
+import * as store from '../../core/store.js?v=42';
+import { getRegion, getCategory } from '../../data/categories.js?v=42';
+import { analyzeNews } from '../../services/classifier.js?v=42';
+import { findDuplicate } from '../../services/deduplicator.js?v=42';
+import { cleanupOldItems } from '../../services/cleanup-service.js?v=42';
 const state = {
   items: [],
   filterBrand: 'all',
@@ -358,12 +358,15 @@ function injectWarehouseUI() {
   view.dataset.ready = '1';
 
   view.innerHTML = `
-    <div class="module-header">
+        <div class="module-header">
       <div>
         <h2>Galpón de Recolección</h2>
         <p class="module-subtitle">Centro de abastecimiento inteligente. Trabajos en cola de producción.</p>
       </div>
-      <span class="badge-count" id="warehouse-counter">0 trabajos</span>
+      <div class="module-header-actions">
+        <span class="badge-count" id="warehouse-counter">0 trabajos</span>
+        <button class="btn btn-sm btn-cleanup" id="warehouse-cleanup" title="Limpiar items viejos">🧹 Limpiar</button>
+      </div>
     </div>
 
     <!-- Panel de estadísticas -->
@@ -400,12 +403,79 @@ export async function initWarehouse() {
   console.log('[warehouse] Iniciando módulo');
   injectWarehouseUI();
   setupFilters();
+  setupCleanupButton();
   await refresh();
+}
+
+// --- Botón de limpieza manual ---
+function setupCleanupButton() {
+  const btn = document.getElementById('warehouse-cleanup');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    await handleCleanupClick();
+  });
+}
+
+async function handleCleanupClick() {
+  const btn = document.getElementById('warehouse-cleanup');
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Analizando…';
+
+  try {
+    // Dry run: cuenta cuántos se borrarían
+    const preview = await cleanupOldItems({ dryRun: true });
+
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+
+    if (preview.workItems === 0 && preview.pieces === 0) {
+      alert('No hay elementos viejos para limpiar. Todo está al día.');
+      return;
+    }
+
+    // Construir mensaje de confirmación
+    const lines = [];
+    if (preview.workItems > 0) lines.push(`• ${preview.workItems} trabajos del Galpón`);
+    if (preview.pieces > 0) lines.push(`• ${preview.pieces} piezas de Calidad`);
+
+    const msg = `🧹 Limpieza automática\n\nSe van a borrar:\n${lines.join('\n')}\n\n¿Confirmás?`;
+
+    if (!confirm(msg)) return;
+
+    // Ejecutar la limpieza
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Limpiando…';
+    const result = await cleanupOldItems({ dryRun: false });
+
+    await refresh();
+    try {
+      const qualityMod = await import('../quality/quality.js?v=42');
+      await qualityMod.refreshQuality();
+    } catch (e) {
+      console.warn('[warehouse] No se pudo refrescar Calidad', e);
+    }
+
+    const parts = [];
+    if (result.workItems > 0) parts.push(`${result.workItems} trabajos`);
+    if (result.pieces > 0) parts.push(`${result.pieces} piezas`);
+    alert(`✅ Limpieza completa.\n\nBorrados: ${parts.join(' y ')}`);
+
+    btn.innerHTML = '✅ Listo';
+    setTimeout(() => (btn.innerHTML = originalText), 2000);
+  } catch (err) {
+    console.error('[warehouse] Error en limpieza', err);
+    alert('Error al limpiar: ' + err.message);
+    btn.innerHTML = '❌ Error';
+    setTimeout(() => (btn.innerHTML = originalText), 2000);
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // --- Probar el motor determinista ---
 async function testEngine(id) {
-  const { generateCopys } = await import('../../services/rules-engine.js???v=34');
+  const { generateCopys } = await import('../../services/rules-engine.js?v=42');
   const item = await store.get('workItems', id);
   if (!item) return;
 
@@ -490,7 +560,7 @@ function showCopyModal(copys, title) {
 }
 
 async function sendToFactory(id) {
-  const { loadWorkItemIntoFactory } = await import('../factory/factory.js???v=34');
+  const { loadWorkItemIntoFactory } = await import('../factory/factory.js?v=42');
   // Cambiar de módulo visualmente
   document.querySelectorAll('.module-item').forEach((i) => {
     i.classList.toggle('is-active', i.dataset.module === 'factory');

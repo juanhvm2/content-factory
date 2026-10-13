@@ -1,10 +1,12 @@
 // app.js
 // Punto de entrada de la aplicación.
 
-import * as store from './core/store.js???v=34';
-import { initForest } from './modules/forest/forest_v2.js???v=34';
-import { initWarehouse } from './modules/warehouse/warehouse.js???v=34';
-import { initFactory } from './modules/factory/factory.js???v=34';
+import * as store from './core/store.js?v=42';
+import { initForest } from './modules/forest/forest_v2.js?v=42';
+import { initWarehouse } from './modules/warehouse/warehouse.js?v=42';
+import { initFactory } from './modules/factory/factory.js?v=42';
+import { initQuality } from './modules/quality/quality.js?v=42';
+import { cleanupOldItems } from './services/cleanup-service.js?v=42';
 
 // --- Navegación entre módulos ---
 function setupNavigation() {
@@ -12,12 +14,22 @@ function setupNavigation() {
   const views = document.querySelectorAll('.module-view');
 
   items.forEach((item) => {
-    item.addEventListener('click', () => {
+    item.addEventListener('click', async () => {
       const target = item.dataset.module;
       items.forEach((i) => i.classList.toggle('is-active', i === item));
       views.forEach((v) =>
         v.classList.toggle('is-active', v.dataset.moduleView === target)
       );
+
+      // Refrescar Calidad cuando entrás a ese módulo
+      if (target === 'quality') {
+        try {
+          const mod = await import('./modules/quality/quality.js?v=42');
+          await mod.refreshQuality();
+        } catch (err) {
+          console.warn('[app] No se pudo refrescar Calidad', err);
+        }
+      }
     });
   });
 }
@@ -149,7 +161,43 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupDbInfoButton();
   setupDbResetButton();
   await testPersistence();
+
+  // Auto-limpieza de elementos viejos (silenciosa)
+  try {
+    const result = await cleanupOldItems({ dryRun: false });
+    if (result.workItems > 0 || result.pieces > 0) {
+      // Avisar al usuario después de un delay para no pisar otros toasts
+      setTimeout(() => {
+        const parts = [];
+        if (result.workItems > 0) parts.push(`${result.workItems} workItems del Galpón`);
+        if (result.pieces > 0) parts.push(`${result.pieces} piezas de Calidad`);
+        showCleanupToast(`🧹 Se limpiaron ${parts.join(' y ')} viejos`);
+      }, 1500);
+    }
+  } catch (err) {
+    console.warn('[app] Auto-limpieza falló:', err);
+  }
+
   await initForest();
   await initWarehouse();
   await initFactory();
+  await initQuality();
 });
+
+// --- Toast de limpieza (reutiliza el estilo de toasts existente) ---
+function showCleanupToast(message) {
+  const container = document.getElementById('toastContainer');
+  if (!container) {
+    console.warn('[app] toastContainer no encontrado, log limpio:', message);
+    return;
+  }
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-success';
+  toast.innerHTML = `<i class="fas fa-broom"></i><div class="toast-text">${message}</div>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.classList.add('toast-visible'), 10);
+  setTimeout(() => {
+    toast.classList.remove('toast-visible');
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}

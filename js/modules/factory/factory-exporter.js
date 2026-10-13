@@ -12,39 +12,47 @@ async function loadImageWithCORS(url) {
   if (!url) return null;
 
   // Intento 1: directo con CORS
-  const tryDirect = () =>
+  const tryWithCORS = (u) =>
     new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => resolve(img);
       img.onerror = () => resolve(null);
-      img.src = url;
+      img.src = u;
     });
 
-  let img = await tryDirect();
-  if (img) return img;
+  let img = await tryWithCORS(url);
+  if (img) {
+    console.log('[exporter] Imagen con CORS (directo):', url);
+    return img;
+  }
 
-  // Intento 2: vía weserv (manda CORS)
+  // Intento 2: weserv
   const stripped = url.replace(/^https?:\/\//, '');
-  const proxyUrl = 'https://images.weserv.nl/?url=' + encodeURIComponent(stripped);
-  img = await new Promise((resolve) => {
-    const i = new Image();
-    i.crossOrigin = 'anonymous';
-    i.onload = () => resolve(i);
-    i.onerror = () => resolve(null);
-    i.src = proxyUrl;
-  });
-  if (img) return img;
+  let img2 = await tryWithCORS('https://images.weserv.nl/?url=' + encodeURIComponent(stripped));
+  if (img2) {
+    console.log('[exporter] Imagen con CORS (weserv):', url);
+    return img2;
+  }
 
-  // Intento 3: vía corsproxy.io
-  img = await new Promise((resolve) => {
-    const i = new Image();
-    i.crossOrigin = 'anonymous';
-    i.onload = () => resolve(i);
-    i.onerror = () => resolve(null);
-    i.src = 'https://corsproxy.io/?url=' + encodeURIComponent(url);
-  });
-  return img;
+  // Intento 3: weserv con ancho forzado (evita algunos bloqueos)
+  img2 = await tryWithCORS(
+    'https://images.weserv.nl/?url=' + encodeURIComponent(stripped) + '&w=1200'
+  );
+  if (img2) {
+    console.log('[exporter] Imagen con CORS (weserv w1200):', url);
+    return img2;
+  }
+
+  // Intento 4: corsproxy.io
+  img2 = await tryWithCORS('https://corsproxy.io/?url=' + encodeURIComponent(url));
+  if (img2) {
+    console.log('[exporter] Imagen con CORS (corsproxy):', url);
+    return img2;
+  }
+
+  console.warn('[exporter] No se pudo cargar con CORS:', url);
+  return null;
 }
 
 // Convierte un canvas a Blob JPG
@@ -63,13 +71,6 @@ function canvasToJpegBlob(canvas, quality = 0.95) {
       reject(err);
     }
   });
-}
-
-// Fuerza una imagen con CORS en el state temporalmente.
-// Devuelve una función para restaurar la imagen original.
-function swapImageForCors(state, obj, key) {
-  const original = obj[key];
-  return { original, key };
 }
 
 // --- Exportar el slide actual ---
@@ -162,7 +163,7 @@ export async function exportAllAsZip(state, renderCanvas, baseName = 'piezas') {
 }
 
 // --- Recarga todas las imágenes con CORS ---
-async function recargarImagenesConCors(state) {
+export async function recargarImagenesConCors(state) {
   // Imagen del slide actual (o del formato sin slides)
   if (state.currentImage && state.selectedImageUrl) {
     const reloaded = await loadImageWithCORS(state.selectedImageUrl);
