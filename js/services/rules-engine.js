@@ -605,15 +605,13 @@ function extractFirstParagraph(text) {
   const clean = normalizeText(text || '');
   if (!clean) return '';
 
-  // Cortar en el primer punto seguido de mayúscula o fin de texto
-  const match = clean.match(/^(.{40,600}?[.!?])(?:\s+[A-ZÁÉÍÓÚÑ¿¡]|$)/);
+  // Cortar en el primer punto seguido de mayúscula o fin de texto.
+  // Sin límite de longitud: queremos el párrafo COMPLETO hasta el primer punto.
+  const match = clean.match(/^(.+?[.!?])(?:\s+[A-ZÁÉÍÓÚÑ¿¡]|$)/);
   if (match) {
     return match[1].trim();
   }
 
-  // Fallback: primeros 280 chars
-  if (clean.length > 280) {
-    return clean.slice(0, 280).replace(/\s+\S*$/, '') + '…';
-  }
+  // Si no hay ningún punto, devolvemos el texto completo
   return clean;
 }

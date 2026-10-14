@@ -319,7 +319,7 @@ function drawLogo(ctx, W, H) {
     }
 
     // Posición según % configurado
-    const x = ((cfg.x ?? 5) / 100) * W;
+    const x = ((cfg.x ?? 74) / 100) * W;
     const y = ((cfg.y ?? 5) / 100) * H;
 
     ctx.save();
@@ -1038,6 +1038,7 @@ function escapeHtml(str) {
 }
 
 // --- Panel de selección de imagen ---
+// --- Panel de selección de imagen ---
 function renderImagePanel() {
   const panel = document.getElementById('factory-tool-panel');
   if (!panel) return;
@@ -1047,12 +1048,15 @@ function renderImagePanel() {
   const images = state.currentWorkItem?.images || [];
   const current = state.selectedImageUrl || state.currentWorkItem?.imageUrl || null;
 
-    // Helper: guarda el estado de trabajo en IndexedDB
+  // Helper: guarda el estado de trabajo en IndexedDB
   const persistNow = () => {
     saveWorkingState(state).catch((err) => console.warn('[factory] persist falló', err));
   };
-        if (images.length === 0) {
-    panel.innerHTML = `
+
+  // --- Cabecera (siempre igual): imágenes o mensaje "sin imágenes" ---
+  let headerHtml = '';
+  if (images.length === 0) {
+    headerHtml = `
       <div class="factory-panel-section">
         <div class="factory-panel-section-title">Imagen del artículo</div>
         <div class="factory-panel-empty" style="height:auto;padding:16px">
@@ -1062,89 +1066,30 @@ function renderImagePanel() {
         </div>
         <button class="btn btn-sm" id="fi-url-btn" style="width:100%;margin-top:8px">🔗 Pegar URL de imagen</button>
       </div>
-
+    `;
+  } else {
+    headerHtml = `
       <div class="factory-panel-section">
-        <div class="factory-panel-section-title">Ajustes de imagen</div>
-
-        <div class="factory-field">
-          <label>Zoom <span id="fi-scale-val" style="color:var(--factory)">${cfg.imgScale || 100}%</span></label>
-          <input type="range" id="fi-scale" class="factory-input" min="50" max="200" step="5" value="${cfg.imgScale || 100}">
+        <div class="factory-panel-section-title">Imagen del artículo (${images.length})</div>
+        <div class="factory-image-grid">
+          ${images
+            .map(
+              (u) => `
+            <div class="factory-image-thumb ${u === current ? 'is-active' : ''}" data-url="${escapeHtml(u)}">
+              <img src="${escapeHtml(u)}" alt="" loading="lazy" onerror="this.style.display='none'">
+            </div>
+          `
+            )
+            .join('')}
         </div>
-
-        <div class="factory-field">
-          <label>Posición X</label>
-          <input type="range" id="fi-offx" class="factory-input" min="-50" max="50" step="1" value="${Math.round(cfg.imgOffsetX || 0)}">
-        </div>
-
-        <div class="factory-field">
-          <label>Posición Y</label>
-          <input type="range" id="fi-offy" class="factory-input" min="-50" max="50" step="1" value="${Math.round(cfg.imgOffsetY || 0)}">
-        </div>
-
-        <div class="factory-field">
-          <label>Alineación horizontal</label>
-          <div class="factory-btn-row">
-            <button class="factory-mini-btn ${cfg.imgAlign === 'left' ? 'is-active' : ''}" data-align="left">◧ Izq</button>
-            <button class="factory-mini-btn ${cfg.imgAlign === 'center' ? 'is-active' : ''}" data-align="center">◫ Centro</button>
-            <button class="factory-mini-btn ${cfg.imgAlign === 'right' ? 'is-active' : ''}" data-align="right">◨ Der</button>
-          </div>
-        </div>
-
-        <div class="factory-field">
-          <label>Alineación vertical</label>
-          <div class="factory-btn-row">
-            <button class="factory-mini-btn ${cfg.imgVAlign === 'top' ? 'is-active' : ''}" data-valign="top">⬒ Arr</button>
-            <button class="factory-mini-btn ${cfg.imgVAlign === 'center' ? 'is-active' : ''}" data-valign="center">▣ Medio</button>
-            <button class="factory-mini-btn ${cfg.imgVAlign === 'bottom' ? 'is-active' : ''}" data-valign="bottom">⬓ Abj</button>
-          </div>
-        </div>
-
-        <div class="factory-field">
-          <label>Opacidad</label>
-          <div class="factory-btn-row">
-            <button class="factory-mini-btn ${cfg.imgOpacity === 1 ? 'is-active' : ''}" data-op="1">100</button>
-            <button class="factory-mini-btn ${cfg.imgOpacity === 0.9 ? 'is-active' : ''}" data-op="0.9">90</button>
-            <button class="factory-mini-btn ${cfg.imgOpacity === 0.8 ? 'is-active' : ''}" data-op="0.8">80</button>
-            <button class="factory-mini-btn ${cfg.imgOpacity === 0.7 ? 'is-active' : ''}" data-op="0.7">70</button>
-          </div>
-        </div>
-
-        <div class="factory-field">
-          <label>Estilo</label>
-          <div class="factory-btn-row">
-            <button class="factory-mini-btn ${cfg.imgGray ? 'is-active' : ''}" id="fi-gray">◐ B/N</button>
-            <button class="factory-mini-btn" id="fi-reset">↻ Reset</button>
-          </div>
-        </div>
+        <button class="btn btn-sm" id="fi-url-btn" style="width:100%;margin-top:10px">🔗 Pegar URL externa</button>
       </div>
     `;
-
-        // Botón URL externa
-    panel.querySelector('#fi-url-btn').addEventListener('click', () => {
-      const url = prompt('URL de la imagen:');
-      if (url) setImageFromUrl(url.trim());
-    });
-    return;
   }
 
-    panel.innerHTML = `
+  // --- Ajustes de imagen (siempre igual) ---
+  const adjustHtml = `
     <div class="factory-panel-section">
-      <div class="factory-panel-section-title">Imagen del artículo (${images.length})</div>
-      <div class="factory-image-grid">
-        ${images
-          .map(
-            (u) => `
-          <div class="factory-image-thumb ${u === current ? 'is-active' : ''}" data-url="${escapeHtml(u)}">
-            <img src="${escapeHtml(u)}" alt="" loading="lazy" onerror="this.style.display='none'">
-          </div>
-        `
-          )
-          .join('')}
-      </div>
-      <button class="btn btn-sm" id="fi-url-btn" style="width:100%;margin-top:10px">🔗 Pegar URL externa</button>
-    </div>
-
-        <div class="factory-panel-section">
       <div class="factory-panel-section-title">Ajustes de imagen</div>
 
       <div class="factory-field">
@@ -1200,46 +1145,60 @@ function renderImagePanel() {
     </div>
   `;
 
-  // Listeners de miniaturas
+  panel.innerHTML = headerHtml + adjustHtml;
+
+  // --- Listeners (siempre se registran, sin importar si hay imágenes o no) ---
+
+  // Botón URL externa
+  const urlBtn = panel.querySelector('#fi-url-btn');
+  if (urlBtn) {
+    urlBtn.addEventListener('click', () => {
+      const url = prompt('URL de la imagen:');
+      if (url) setImageFromUrl(url.trim());
+    });
+  }
+
+  // Miniaturas de imágenes
   panel.querySelectorAll('.factory-image-thumb').forEach((thumb) => {
     thumb.addEventListener('click', () => {
       setImageFromUrl(thumb.dataset.url);
     });
   });
 
-  // Botón URL externa
-  panel.querySelector('#fi-url-btn').addEventListener('click', () => {
-    const url = prompt('URL de la imagen:');
-    if (url) setImageFromUrl(url.trim());
-  });
-
   // Zoom
   const scaleInput = panel.querySelector('#fi-scale');
-  scaleInput.addEventListener('input', async (e) => {
-    const v = parseInt(e.target.value, 10);
-    updateActiveImgConfig({ imgScale: v });
-    panel.querySelector('#fi-scale-val').textContent = v + '%';
-    await renderCanvas();
-    persistNow();
-  });
+  if (scaleInput) {
+    scaleInput.addEventListener('input', async (e) => {
+      const v = parseInt(e.target.value, 10);
+      updateActiveImgConfig({ imgScale: v });
+      const label = panel.querySelector('#fi-scale-val');
+      if (label) label.textContent = v + '%';
+      await renderCanvas();
+      persistNow();
+    });
+  }
 
   // Offset X
   const offxInput = panel.querySelector('#fi-offx');
-  offxInput.addEventListener('input', async (e) => {
-    const v = parseFloat(e.target.value);
-    updateActiveImgConfig({ imgOffsetX: v });
-    await renderCanvas();
-    persistNow();
-  });
+  if (offxInput) {
+    offxInput.addEventListener('input', async (e) => {
+      const v = parseFloat(e.target.value);
+      updateActiveImgConfig({ imgOffsetX: v });
+      await renderCanvas();
+      persistNow();
+    });
+  }
 
   // Offset Y
   const offyInput = panel.querySelector('#fi-offy');
-  offyInput.addEventListener('input', async (e) => {
-    const v = parseFloat(e.target.value);
-    updateActiveImgConfig({ imgOffsetY: v });
-    await renderCanvas();
-    persistNow();
-  });
+  if (offyInput) {
+    offyInput.addEventListener('input', async (e) => {
+      const v = parseFloat(e.target.value);
+      updateActiveImgConfig({ imgOffsetY: v });
+      await renderCanvas();
+      persistNow();
+    });
+  }
 
   // Alineación horizontal
   panel.querySelectorAll('[data-align]').forEach((btn) => {
@@ -1281,30 +1240,36 @@ function renderImagePanel() {
   });
 
   // B/N
-  panel.querySelector('#fi-gray').addEventListener('click', async () => {
-    const cfgNow = getActiveImgConfig();
-    const newValue = !cfgNow.imgGray;
-    updateActiveImgConfig({ imgGray: newValue });
-    panel.querySelector('#fi-gray').classList.toggle('is-active', newValue);
-    await renderCanvas();
-    persistNow();
-  });
+  const grayBtn = panel.querySelector('#fi-gray');
+  if (grayBtn) {
+    grayBtn.addEventListener('click', async () => {
+      const cfgNow = getActiveImgConfig();
+      const newValue = !cfgNow.imgGray;
+      updateActiveImgConfig({ imgGray: newValue });
+      grayBtn.classList.toggle('is-active', newValue);
+      await renderCanvas();
+      persistNow();
+    });
+  }
 
   // Reset
-  panel.querySelector('#fi-reset').addEventListener('click', async () => {
-    updateActiveImgConfig({
-      imgOffsetX: 0,
-      imgOffsetY: 0,
-      imgScale: 100,
-      imgAlign: 'center',
-      imgVAlign: 'center',
-      imgGray: false,
-      imgOpacity: 1,
+  const resetBtn = panel.querySelector('#fi-reset');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', async () => {
+      updateActiveImgConfig({
+        imgOffsetX: 0,
+        imgOffsetY: 0,
+        imgScale: 100,
+        imgAlign: 'center',
+        imgVAlign: 'center',
+        imgGray: false,
+        imgOpacity: 1,
+      });
+      await renderCanvas();
+      persistNow();
+      renderImagePanel();
     });
-    await renderCanvas();
-    persistNow();
-    renderImagePanel();
-  });
+  }
 }
 
 async function setImageFromUrl(url) {
@@ -1940,8 +1905,8 @@ function renderLogoPanel() {
       </div>
 
       <div class="factory-field">
-        <label>Posición X <span id="lg-x-val" style="color:var(--factory)">${Math.round(cfg.x ?? 5)}%</span></label>
-        <input type="range" id="lg-x" class="factory-input" min="0" max="95" step="1" value="${Math.round(cfg.x ?? 5)}">
+        <label>Posición X <span id="lg-x-val" style="color:var(--factory)">${Math.round(cfg.x ?? 74)}%</span></label>
+        <input type="range" id="lg-x" class="factory-input" min="0" max="95" step="1" value="${Math.round(cfg.x ?? 74)}">
       </div>
 
       <div class="factory-field">
