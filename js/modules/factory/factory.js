@@ -1,19 +1,19 @@
 // factory.js
 // Módulo Fábrica de Contenidos. Workspace unificado.
 
-import * as store from '../../core/store.js?v=46';
-import { extractRealContent } from '../../services/rules-engine.js?v=46';
+import * as store from '../../core/store.js?v=47';
+import { extractRealContent } from '../../services/rules-engine.js?v=47';
 import {
   saveWorkingState,
   loadWorkingState,
   listPresets,
   savePreset,
   deletePreset,
-} from './factory-persistence.js?v=46';
-import { loadAllLogos, saveLogoConfig, clearLogoOverride } from './factory-logos.js?v=46';
-import { exportCurrentSlide, exportAllAsZip } from './factory-exporter.js?v=46';
-import { savePiecesToQuality } from './factory-quality-bridge.js?v=46';
-import { refreshQuality } from '../quality/quality.js?v=46';
+} from './factory-persistence.js?v=47';
+import { loadAllLogos, saveLogoConfig, clearLogoOverride } from './factory-logos.js?v=47';
+import { exportCurrentSlide, exportAllAsZip } from './factory-exporter.js?v=47';
+import { savePiecesToQuality } from './factory-quality-bridge.js?v=47';
+import { refreshQuality } from '../quality/quality.js?v=47';
 
 // --- Configuración por defecto de cada formato ---
 const DEFAULT_FORMAT_CONFIG = {
