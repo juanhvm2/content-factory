@@ -403,7 +403,7 @@ async function fetchOneSource(id) {
   }
 }
 
-// --- Consultar TODAS las fuentes activas (hasta un máximo) ---
+// --- Consultar TODAS las fuentes activas EN PARALELO ---
 async function fetchAllActive() {
   if (state.isFetching) return;
   state.isFetching = true;
@@ -414,7 +414,6 @@ async function fetchAllActive() {
     btn.textContent = 'Consultando…';
   }
 
-  // Fuentes activas (excluye pausadas)
   const allActive = state.sources.filter((s) => s.status !== 'paused');
   if (allActive.length === 0) {
     console.log('[forest] No hay fuentes activas para consultar');
@@ -426,62 +425,60 @@ async function fetchAllActive() {
     return;
   }
 
-  // Rotación: empezar desde donde quedamos la vez anterior
-  const total = allActive.length;
-  const offset = state.sourceOffset % total;
-  const sliceSize = Math.min(MAX_SOURCES_PER_FETCH, total);
-  const toFetch = [];
-  for (let i = 0; i < sliceSize; i++) {
-    toFetch.push(allActive[(offset + i) % total]);
-  }
+  console.log(`[forest] Consultando TODAS las fuentes: ${allActive.length}`);
 
-  console.log(
-    `[forest] Consultando ${toFetch.length} fuentes (bloque ${offset + 1}-${offset + sliceSize} de ${total})`
-  );
-
-  // Inicializar progreso
   state.fetchProgress.current = 0;
-  state.fetchProgress.total = toFetch.length;
+  state.fetchProgress.total = allActive.length;
   state.fetchProgress.startedAt = Date.now();
   state.fetchProgress.newsCount = 0;
   renderFetchProgress();
 
-  let totalNew = 0;
-  for (const source of toFetch) {
-    try {
-      const items = await fetchNews(source);
-      let saved = 0;
-      for (const item of items) {
-        if (!isNewsFresh(item)) continue;
-        const existing = await store.get('news', item.id);
-        if (!existing) {
-          await store.set('news', item.id, item);
-          saved++;
-        }
-      }
-      totalNew += saved;
-      state.fetchProgress.newsCount = totalNew;
-      await store.set('sources', source.id, {
-        ...source,
-        lastFetch: new Date().toISOString(),
-        status: 'active',
-      });
-    } catch (error) {
-      console.warn(`[forest] Falla en ${source.name}:`, error.message);
-      await store.set('sources', source.id, { ...source, status: 'error' });
-    }
+  const progressTimer = setInterval(() => renderFetchProgress(), 500);
 
-    state.fetchProgress.current++;
-    renderFetchProgress();
+  const CONCURRENCY = 12;
+  const queue = [...allActive];
+  let totalNew = 0;
+
+  async function worker() {
+    while (queue.length > 0) {
+      const source = queue.shift();
+      if (!source) break;
+
+      try {
+        const items = await fetchNews(source);
+        let saved = 0;
+        for (const item of items) {
+          if (!isNewsFresh(item)) continue;
+          const existing = await store.get('news', item.id);
+          if (!existing) {
+            await store.set('news', item.id, item);
+            saved++;
+          }
+        }
+        totalNew += saved;
+        state.fetchProgress.newsCount = totalNew;
+
+        await store.set('sources', source.id, {
+          ...source,
+          lastFetch: new Date().toISOString(),
+          status: 'active',
+        });
+      } catch (error) {
+        console.warn(`[forest] Falla en ${source.name}:`, error.message);
+        await store.set('sources', source.id, { ...source, status: 'error' });
+      }
+
+      state.fetchProgress.current++;
+    }
   }
 
-  // Avanzar el offset para la próxima consulta
-  state.sourceOffset = (offset + sliceSize) % total;
-  localStorage.setItem('forest_source_offset', String(state.sourceOffset));
+  await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
 
-  console.log(`[forest] ${totalNew} noticias nuevas (offset avanzado a ${state.sourceOffset})`);
+  clearInterval(progressTimer);
+  renderFetchProgress();
 
-  // Ocultar la barra de progreso después de un delay
+  console.log(`[forest] ${totalNew} noticias nuevas en total`);
+
   setTimeout(() => {
     state.fetchProgress.startedAt = null;
     renderFetchProgress();
@@ -498,6 +495,7 @@ async function fetchAllActive() {
   state.isFetching = false;
   await refresh();
 }
+
 
 // --- Estado visual temporal ---
 function setSourceStatus(id, status, label) {
