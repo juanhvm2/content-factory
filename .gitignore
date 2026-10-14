@@ -17,3 +17,9 @@ node_modules/
 # Archivos de backup
 *.bak
 *.tmp
+
+# Carpeta de pruebas locales (no subir)
+_test/
+
+# Resultado de pruebas
+js/data/news.json
