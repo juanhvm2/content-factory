@@ -3,7 +3,7 @@
 
 import * as store from '../../core/store.js?v=47';
 import { SEED_SOURCES } from '../../data/sources.js?v=47';
-import { REGIONS, getRegion, getCategory } from '../../data/categories.js?v=47';
+import { REGIONS, getRegion, getCategory, CATEGORIES } from '../../data/categories.js?v=47';
 import { openSourceEditor, setupSourceEditor } from './source-editor.js?v=47';
 import { fetchSourceNews } from '../../services/rss-service.js?v=47';
 import { addWorkItem } from '../warehouse/warehouse.js?v=47';
@@ -16,6 +16,7 @@ const state = {
   news: [],
   filterRegion: 'all',
   newsFilterRegion: 'all',
+  newsFilterCategory: 'all',
   search: '',
   newsSearch: '',
   isFetching: false,
@@ -29,7 +30,7 @@ const state = {
 };
 
 const MAX_SOURCES_PER_FETCH = 15;
-const MAX_NEWS_AGE_HOURS = 48; // Solo noticias de las últimas 48 horas
+const MAX_NEWS_AGE_HOURS = 24; // Solo noticias de las últimas 24 horas
 
 // --- Cargar fuentes (sembrar si es la primera vez) ---
 async function loadSources() {
@@ -119,10 +120,15 @@ function filterSources() {
 
 function filterNews() {
   return state.news.filter((n) => {
-    // Filtrar por antigüedad (solo noticias frescas)
     if (!isNewsFresh(n)) return false;
 
     if (state.newsFilterRegion !== 'all' && n.region !== state.newsFilterRegion) return false;
+
+    if (state.newsFilterCategory !== 'all') {
+      const cats = n.categories || [];
+      if (!cats.includes(state.newsFilterCategory)) return false;
+    }
+
     if (state.newsSearch) {
       const q = state.newsSearch.toLowerCase();
       const haystack = (n.title + ' ' + n.excerpt).toLowerCase();
@@ -684,9 +690,19 @@ function setupFilters() {
     });
   });
 
-  document.getElementById('forest-news-search')?.addEventListener('input', (e) => {
+   document.getElementById('forest-news-search')?.addEventListener('input', (e) => {
     state.newsSearch = e.target.value;
     renderNewsList();
+  });
+
+  document.querySelectorAll('#forest-news-categories .category-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.newsFilterCategory = btn.dataset.category;
+      document
+        .querySelectorAll('#forest-news-categories .category-btn')
+        .forEach((b) => b.classList.toggle('is-active', b === btn));
+      renderNewsList();
+    });
   });
 }
 
@@ -881,7 +897,7 @@ function injectForestUI() {
           <h3 class="section-title">Noticias recientes <span class="badge-count" id="forest-news-count">0</span></h3>
         </div>
       </div>
-      <div class="forest-toolbar">
+            <div class="forest-toolbar">
         <div class="region-tabs" id="forest-news-regions">
           <button class="region-btn is-active" data-region="all">Todas</button>
           ${REGIONS.map(
@@ -889,6 +905,15 @@ function injectForestUI() {
           ).join('')}
         </div>
         <input type="text" id="forest-news-search" class="forest-search" placeholder="Buscar noticias…" />
+      </div>
+
+      <div class="forest-category-bar">
+        <div class="category-tabs" id="forest-news-categories">
+          <button class="category-btn is-active" data-category="all">Todas las categorías</button>
+          ${CATEGORIES.map(
+            (c) => `<button class="category-btn" data-category="${c.id}" style="--cat-color:${c.color}">${c.name}</button>`
+          ).join('')}
+        </div>
       </div>
       <div class="forest-news-grid" id="forest-news-list">
         <div class="forest-empty"><p>Todavía no hay noticias cargadas.</p></div>
