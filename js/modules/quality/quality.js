@@ -2,8 +2,8 @@
 // Módulo Control de Calidad y Entrega.
 // Tablero kanban con piezas por estado: Borrador, Pendiente, Aprobado, Listo, Exportado.
 
-import * as store from '../../core/store.js?v=47';
-import { cleanupOldItems } from '../../services/cleanup-service.js?v=47';
+import * as store from '../../core/store.js?v=48';
+import { cleanupOldItems } from '../../services/cleanup-service.js?v=48';
 
 const state = {
   pieces: [],
@@ -570,7 +570,7 @@ async function handleCleanupClick() {
 
     // Refrescar Galpón también (por si borró workItems)
     try {
-      const warehouseMod = await import('../warehouse/warehouse.js?v=47');
+      const warehouseMod = await import('../warehouse/warehouse.js?v=48');
       await warehouseMod.refresh();
     } catch (e) {
       console.warn('[quality] No se pudo refrescar Galpón', e);
