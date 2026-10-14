@@ -262,7 +262,7 @@ function renderNewsList() {
     .map((n) => {
       const img = n.imageUrl
         ? `<img class="news-thumb" src="${escapeHtml(n.imageUrl)}" alt="" loading="lazy"
-            onerror="this.style.display='none'">`
+            onerror="this.outerHTML='<div class=\\'news-thumb news-thumb-placeholder\\'>📰</div>'">`
         : `<div class="news-thumb news-thumb-placeholder">📰</div>`;
       const region = getRegion(n.region);
       const alreadySent = n.status === 'selected';

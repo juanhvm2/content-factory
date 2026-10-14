@@ -7,7 +7,7 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const TIMEOUT_MS = 12000;
-const HOURS_BACK = 48;
+const HOURS_BACK = 24;
 const CONCURRENCY = 16;
 const OUTPUT_PATH = join(process.cwd(), 'js', 'data', 'news.json');
 const USER_AGENT = 'Mozilla/5.0 (compatible; ContentFactory/1.0; +https://github.com/juanhvm2/content-factory)';
@@ -67,9 +67,58 @@ function parseXmlItems(xmlText) {
         extractTag(block, 'updated') ||
         extractTag(block, 'date') ||
         '',
+      _rawBlock: block, // guardamos el bloque crudo para extraer la imagen
     });
   }
   return items;
+}
+
+// ---------------------------------------------------------------------------
+// Extracción de imagen del item
+// ---------------------------------------------------------------------------
+function isImageUrl(url) {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  if (lower.endsWith('.svg')) return false;
+  if (lower.includes('pixel')) return false;
+  if (lower.includes('1x1')) return false;
+  if (lower.includes('blank.gif')) return false;
+  if (lower.startsWith('data:')) return false;
+  return true;
+}
+
+function extractImageFromItem(item) {
+  const block = item._rawBlock || '';
+  const candidates = [];
+
+  // 1. <media:content url="..." /> — suele ser la imagen grande
+  for (const m of block.matchAll(/<media:content[^>]+url=["']([^"']+)["'][^>]*>/gi)) {
+    if (isImageUrl(m[1])) candidates.push({ url: m[1], priority: 1 });
+  }
+
+  // 2. <enclosure url="..." /> — imagen destacada oficial
+  for (const m of block.matchAll(/<enclosure[^>]+url=["']([^"']+)["'][^>]*>/gi)) {
+    if (isImageUrl(m[1])) candidates.push({ url: m[1], priority: 2 });
+  }
+
+  // 3. <media:thumbnail url="..." /> — miniatura (menos prioridad)
+  for (const m of block.matchAll(/<media:thumbnail[^>]+url=["']([^"']+)["'][^>]*>/gi)) {
+    if (isImageUrl(m[1])) candidates.push({ url: m[1], priority: 4 });
+  }
+
+  // 4. <img src="..." /> en description/content — varía mucho la calidad
+  for (const m of block.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)) {
+    if (isImageUrl(m[1])) candidates.push({ url: m[1], priority: 3 });
+  }
+
+  if (candidates.length === 0) return null;
+
+  // Ordenar por prioridad y elegir el primero
+  candidates.sort((a, b) => a.priority - b.priority);
+
+  // Entre los de igual prioridad, preferir URLs que sugieran "grande"
+  const best = candidates[0];
+  return best.url;
 }
 
 // ---------------------------------------------------------------------------
@@ -147,6 +196,7 @@ async function processSource(source) {
       title: it.title,
       link: it.link,
       excerpt: (it.description || '').slice(0, 220),
+      imageUrl: extractImageFromItem(it),
       pubDate: it.pubDate || null,
       fetchedAt: new Date().toISOString(),
     }));
@@ -202,6 +252,7 @@ async function main() {
     return db - da;
   });
 
+  const withImage = uniqueNews.filter((n) => n.imageUrl).length;
   const elapsed = ((Date.now() - startTime.getTime()) / 1000).toFixed(1);
 
   console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
@@ -209,6 +260,7 @@ async function main() {
   console.log(`✅ OK:            ${ok.length}/${sources.length} (${Math.round((ok.length / sources.length) * 100)}%)`);
   console.log(`❌ Fallidas:     ${failed.length}`);
   console.log(`🎯 Noticias:     ${uniqueNews.length}`);
+  console.log(`🖼️  Con imagen:   ${withImage} (${Math.round((withImage / uniqueNews.length) * 100)}%)`);
   console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
 
   const output = {
