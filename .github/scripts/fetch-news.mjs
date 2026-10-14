@@ -76,6 +76,39 @@ function parseXmlItems(xmlText) {
 // ---------------------------------------------------------------------------
 // Extracción de imagen del item
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Extracción de og:image (imagen HD del artículo original)
+// ---------------------------------------------------------------------------
+function extractOgImage(html) {
+  const patterns = [
+    /<meta[^>]+property=["']og:image:secure_url["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
+    /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+name=["']twitter:image:src["'][^>]+content=["']([^"']+)["']/i,
+  ];
+  for (const p of patterns) {
+    const m = html.match(p);
+    if (m && m[1]) return m[1].trim();
+  }
+  return null;
+}
+
+async function fetchArticleImage(articleUrl) {
+  try {
+    const html = await fetchWithTimeout(articleUrl, 8000);
+    const og = extractOgImage(html);
+    if (!og) return null;
+    try {
+      return new URL(og, articleUrl).href;
+    } catch {
+      return og;
+    }
+  } catch {
+    return null;
+  }
+}
+
 function isImageUrl(url) {
   if (!url) return false;
   const lower = url.toLowerCase();
@@ -187,7 +220,7 @@ async function processSource(source) {
       .slice(0, MAX_PER_SOURCE);
     result.recentCount = recent.length;
 
-    result.news = recent.map((it) => ({
+        result.news = recent.map((it) => ({
       id: hashLink(it.link || it.title),
       sourceId: source.id,
       sourceName: source.name,
@@ -200,6 +233,16 @@ async function processSource(source) {
       pubDate: it.pubDate || null,
       fetchedAt: new Date().toISOString(),
     }));
+
+    // Enriquecer con og:image HD (solo las primeras 8 noticias por fuente)
+    const topItems = result.news.slice(0, 8);
+    await Promise.allSettled(
+      topItems.map(async (n) => {
+        if (!n.link) return;
+        const hd = await fetchArticleImage(n.link);
+        if (hd) n.imageUrl = hd;
+      })
+    );
 
     result.ok = true;
   } catch (e) {
