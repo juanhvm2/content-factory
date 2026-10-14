@@ -2,8 +2,8 @@
 // Puente entre la Fábrica y el módulo Calidad.
 // Guarda una pieza (o varias) en el store 'pieces' de IndexedDB.
 
-import * as store from '../../core/store.js?v=42';
-import { recargarImagenesConCors } from './factory-exporter.js?v=42';
+import * as store from '../../core/store.js?v=46';
+import { recargarImagenesConCors } from './factory-exporter.js?v=46';
 
 // --- Genera un ID único para la pieza ---
 function generatePieceId() {
@@ -35,6 +35,17 @@ function getCanvasThumbnail(canvas, maxSize = 300) {
   }
 }
 
+// --- Genera la imagen en resolución completa desde el canvas ---
+function getCanvasFullImage(canvas, quality = 0.92) {
+  if (!canvas) return null;
+  try {
+    return canvas.toDataURL('image/jpeg', quality);
+  } catch (err) {
+    console.warn('[bridge] No se pudo generar render full-res (canvas tainted)', err.message);
+    return null;
+  }
+}
+
 // --- Fallback: si el canvas está tainted, usamos la imagen de la noticia ---
 function getFallbackThumbnail(workItem) {
   if (!workItem) return null;
@@ -61,7 +72,7 @@ export async function savePiecesToQuality(factoryState, options = {}) {
   }
 
   // Importar renderCanvas dinámicamente y redibujar (para limpiar el canvas tainted)
-  const factoryModule = await import('./factory.js?v=42');
+  const factoryModule = await import('./factory.js?v=46');
   const renderCanvas = factoryModule.__renderCanvasForBridge;
   if (!renderCanvas) throw new Error('No se pudo acceder a renderCanvas');
 
@@ -88,6 +99,7 @@ export async function savePiecesToQuality(factoryState, options = {}) {
       content: factoryState.currentContent,
       slideIndex: factoryState.currentSlideIdx || 0,
       thumbDataUrl: getCanvasThumbnail(canvas) || getFallbackThumbnail(workItem),
+      renderDataUrl: getCanvasFullImage(canvas),
       templateConfig: factoryState.formatConfigs[format] || null,
       imgConfig: factoryState.imgConfigs[format] || null,
     });
@@ -127,6 +139,7 @@ export async function savePiecesToQuality(factoryState, options = {}) {
       slideIndex: i,
       totalSlides: slides.length,
       thumbDataUrl: getCanvasThumbnail(canvas) || getFallbackThumbnail(workItem),
+      renderDataUrl: getCanvasFullImage(canvas),
       templateConfig: factoryState.formatConfigs[format] || null,
       imgConfig: slides[i].imgConfig || null,
     });
@@ -146,7 +159,7 @@ export async function savePiecesToQuality(factoryState, options = {}) {
 }
 
 // --- Construye el objeto pieza ---
-function buildPiece({ format, brand, formatLabel, workItem, content, slideIndex, totalSlides, thumbDataUrl, templateConfig, imgConfig }) {
+  function buildPiece({ format, brand, formatLabel, workItem, content, slideIndex, totalSlides, thumbDataUrl, renderDataUrl, templateConfig, imgConfig }) {
   const now = new Date().toISOString();
   const isMultiSlide = ['carousel', 'stories'].includes(format);
   const title = isMultiSlide
@@ -179,6 +192,7 @@ function buildPiece({ format, brand, formatLabel, workItem, content, slideIndex,
 
     // Presentación
     thumbDataUrl: thumbDataUrl,
+    renderDataUrl: renderDataUrl || null,
 
     // Metadata
     createdAt: now,

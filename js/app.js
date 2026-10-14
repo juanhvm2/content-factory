@@ -1,12 +1,12 @@
 // app.js
 // Punto de entrada de la aplicación.
 
-import * as store from './core/store.js?v=42';
-import { initForest } from './modules/forest/forest_v2.js?v=42';
-import { initWarehouse } from './modules/warehouse/warehouse.js?v=42';
-import { initFactory } from './modules/factory/factory.js?v=42';
-import { initQuality } from './modules/quality/quality.js?v=42';
-import { cleanupOldItems } from './services/cleanup-service.js?v=42';
+import * as store from './core/store.js?v=46';
+import { initForest } from './modules/forest/forest_v2.js?v=46';
+import { initWarehouse } from './modules/warehouse/warehouse.js?v=46';
+import { initFactory } from './modules/factory/factory.js?v=46';
+import { initQuality } from './modules/quality/quality.js?v=46';
+import { cleanupOldItems } from './services/cleanup-service.js?v=46';
 
 // --- Navegación entre módulos ---
 function setupNavigation() {
@@ -24,7 +24,7 @@ function setupNavigation() {
       // Refrescar Calidad cuando entrás a ese módulo
       if (target === 'quality') {
         try {
-          const mod = await import('./modules/quality/quality.js?v=42');
+          const mod = await import('./modules/quality/quality.js?v=46');
           await mod.refreshQuality();
         } catch (err) {
           console.warn('[app] No se pudo refrescar Calidad', err);
