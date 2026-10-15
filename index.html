@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="styles/modules/warehouse.css">
   <link rel="stylesheet" href="styles/modules/factory.css">
   <link rel="stylesheet" href="styles/modules/quality.css">
+  <link rel="stylesheet" href="styles/modules/efemerides.css">
 </head>
 <body>
   <div class="app">
@@ -32,6 +33,12 @@
     <div class="app-body">
       <nav class="module-nav">
         <div class="module-nav-title">Módulos</div>
+
+        <button class="module-item" data-module="efemerides">
+          <span class="module-icon">📅</span>
+          <span class="module-name">Efemérides</span>
+          <span class="module-count">0</span>
+        </button>
 
         <button class="module-item is-active" data-module="forest">
           <span class="module-icon">🌲</span>
@@ -59,6 +66,10 @@
       </nav>
 
       <main class="app-main">
+                <section class="module-view" data-module-view="efemerides">
+          <div id="efemerides-root"></div>
+        </section>
+
                 <section class="module-view is-active" data-module-view="forest">
           <div id="forest-root"></div>
         </section>

@@ -121,6 +121,8 @@ const FORMAT_DIMS = {
   story: { w: 1080, h: 1920, label: 'Historia', slides: false },
   stories: { w: 1080, h: 1920, label: 'Historias', slides: true },
   carousel: { w: 1080, h: 1350, label: 'Carrusel', slides: true },
+  frases: { w: 1080, h: 1350, label: 'Frases', slides: false, underConstruction: true },
+  grilla: { w: 1080, h: 1920, label: 'Grilla', slides: false, underConstruction: true },
 };
 
 // --- Cargar imagen con fallback ---
@@ -470,6 +472,8 @@ function injectFactoryUI() {
             <button class="factory-mode-btn" data-format="story">📱 Historia</button>
             <button class="factory-mode-btn" data-format="stories">📚 Historias</button>
             <button class="factory-mode-btn" data-format="carousel">🎠 Carrusel</button>
+            <button class="factory-mode-btn" data-format="frases">💬 Frases</button>
+            <button class="factory-mode-btn" data-format="grilla">▦ Grilla</button>
           </div>
         </div>
         <div class="factory-topbar-center">
@@ -498,13 +502,19 @@ function injectFactoryUI() {
         <main class="factory-canvas-wrap">
           <div class="factory-canvas-container" id="factory-canvas-container">
             <canvas id="factory-canvas" width="1080" height="1350"></canvas>
-            <div class="factory-canvas-placeholder" id="factory-canvas-placeholder">
+                        <div class="factory-canvas-placeholder" id="factory-canvas-placeholder">
               <div class="factory-placeholder-content">
                 <div class="factory-placeholder-icon">🏭</div>
                 <div class="factory-placeholder-title">Bienvenido a la Fábrica</div>
                 <div class="factory-placeholder-sub">Cargá un trabajo desde el <strong>Galpón</strong><br>y hacé clic en <strong>⚡ Generar</strong>.</div>
                 <div class="factory-placeholder-dims" id="factory-placeholder-dims">1080 × 1350 · Post</div>
               </div>
+            </div>
+            <div class="factory-under-construction" id="factory-under-construction" style="display:none;">
+              <div class="factory-uc-icon" id="factory-uc-icon">💬</div>
+              <span class="factory-uc-badge" id="factory-uc-badge">En construcción</span>
+              <h2 class="factory-uc-title" id="factory-uc-title">Muy pronto</h2>
+              <p class="factory-uc-sub" id="factory-uc-sub"></p>
             </div>
           </div>
         </main>
@@ -792,6 +802,10 @@ function bindCanvasDrag() {
 
 // --- Generar contenido ---
 async function generateContent() {
+    if (FORMAT_DIMS[state.format]?.underConstruction) {
+    console.log('[factory] Formato en construcción:', state.format);
+    return;
+  }
   if (!state.currentWorkItem) return;
 
   const btn = document.getElementById('factory-generate');
@@ -953,6 +967,36 @@ function setFormat(format) {
   if (canvas) {
     canvas.width = dims.w;
     canvas.height = dims.h;
+  }
+  
+  // Mostrar / ocultar cartel "en construcción"
+  const ucBox = document.getElementById('factory-under-construction');
+  const ucIcon = document.getElementById('factory-uc-icon');
+  const ucBadge = document.getElementById('factory-uc-badge');
+  const ucTitle = document.getElementById('factory-uc-title');
+  const ucSub = document.getElementById('factory-uc-sub');
+  const placeholder = document.getElementById('factory-canvas-placeholder');
+  const canvasEl = document.getElementById('factory-canvas');
+
+  if (dims.underConstruction) {
+    const isFrases = format === 'frases';
+    if (ucBox) {
+      ucBox.style.display = 'flex';
+      ucBox.dataset.kind = format;
+    }
+    if (ucIcon) ucIcon.textContent = isFrases ? '💬' : '▦';
+    if (ucBadge) ucBadge.textContent = 'En construcción';
+    if (ucTitle) ucTitle.textContent = isFrases ? 'Formato Frases' : 'Formato Grilla';
+    if (ucSub) {
+      ucSub.textContent = isFrases
+        ? 'Acá vas a poder crear piezas con una frase centrada, autor, cargo y logo. Estamos trabajando en el editor.'
+        : 'Acá vas a poder combinar 5 noticias (1 principal + 4 secundarias) con imagen y título, en formato Historia. Estamos trabajando en el editor.';
+    }
+    if (placeholder) placeholder.style.display = 'none';
+    if (canvasEl) canvasEl.style.opacity = '0';
+  } else {
+    if (ucBox) ucBox.style.display = 'none';
+    if (canvasEl) canvasEl.style.opacity = '1';
   }
 
   const dimsLabel = document.getElementById('factory-placeholder-dims');

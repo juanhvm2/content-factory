@@ -1,0 +1,82 @@
+/* efemerides.css */
+/* Módulo Efemérides. Por ahora: cartel "En construcción". */
+
+:root {
+  --efemerides: #f472b6;
+  --efemerides-glow: rgba(244, 114, 182, 0.15);
+}
+
+/* Cabecera del módulo */
+.module-view[data-module-view="efemerides"] .module-header h2 {
+  color: var(--efemerides);
+}
+
+/* Pantalla de "en construcción" */
+.efemerides-construction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 60vh;
+  padding: var(--space-6);
+  gap: var(--space-4);
+}
+
+.efemerides-construction-icon {
+  font-size: 96px;
+  line-height: 1;
+  filter: drop-shadow(0 8px 24px rgba(244, 114, 182, 0.35));
+  animation: efemerides-float 3s ease-in-out infinite;
+}
+
+@keyframes efemerides-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.efemerides-construction-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  background: var(--efemerides-glow);
+  color: var(--efemerides);
+  border: 1px solid rgba(244, 114, 182, 0.4);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.efemerides-construction-title {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--text-1);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.efemerides-construction-sub {
+  font-size: 15px;
+  color: var(--text-3);
+  max-width: 520px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.efemerides-construction-hint {
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-1);
+  border: 1px dashed var(--border-1);
+  border-radius: var(--radius-3);
+  color: var(--text-3);
+  font-size: 13px;
+  max-width: 520px;
+  line-height: 1.5;
+}
+
+.efemerides-construction-hint strong {
+  color: var(--efemerides);
+}
