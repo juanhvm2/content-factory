@@ -1,13 +1,13 @@
 // app.js
 // Punto de entrada de la aplicación.
 
-import * as store from './core/store.js?v=48';
-import { initEfemerides } from './modules/efemerides/efemerides.js?v=48';
-import { initForest } from './modules/forest/forest_v2.js?v=48';
-import { initWarehouse } from './modules/warehouse/warehouse.js?v=48';
-import { initFactory } from './modules/factory/factory.js?v=48';
-import { initQuality } from './modules/quality/quality.js?v=48';
-import { cleanupOldItems } from './services/cleanup-service.js?v=48';
+import * as store from './core/store.js?v=49';
+import { initEfemerides } from './modules/efemerides/efemerides.js?v=49';
+import { initForest } from './modules/forest/forest_v2.js?v=49';
+import { initWarehouse } from './modules/warehouse/warehouse.js?v=49';
+import { initFactory } from './modules/factory/factory.js?v=49';
+import { initQuality } from './modules/quality/quality.js?v=49';
+import { cleanupOldItems } from './services/cleanup-service.js?v=49';
 
 // --- Navegación entre módulos ---
 function setupNavigation() {
@@ -25,7 +25,7 @@ function setupNavigation() {
       // Refrescar Calidad cuando entrás a ese módulo
       if (target === 'quality') {
         try {
-          const mod = await import('./modules/quality/quality.js?v=48');
+          const mod = await import('./modules/quality/quality.js?v=49');
           await mod.refreshQuality();
         } catch (err) {
           console.warn('[app] No se pudo refrescar Calidad', err);
