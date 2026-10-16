@@ -14,6 +14,7 @@ import { loadAllLogos, saveLogoConfig, clearLogoOverride } from './factory-logos
 import { exportCurrentSlide, exportAllAsZip } from './factory-exporter.js?v=49';
 import { savePiecesToQuality } from './factory-quality-bridge.js?v=49';
 import { refreshQuality } from '../quality/quality.js?v=49';
+import { extractFromLink } from '../../services/link-extractor.js?v=49';
 
 // --- Configuración por defecto de cada formato ---
 const DEFAULT_FORMAT_CONFIG = {
@@ -72,6 +73,9 @@ const state = {
   // Cada slide: { id, template, content: {category, headline, body}, imageUrl, selectedImageUrl, image: HTMLImageElement|null }
   slides: [],
   currentSlideIdx: 0,
+  // Panel Blog
+  blogContentLoading: false,
+  blogContentError: null,
 };
 
 // --- Devuelve la config del formato actual ---
@@ -519,11 +523,8 @@ function injectFactoryUI() {
           </div>
         </main>
 
-        <aside class="factory-properties">
-          <div class="factory-props-empty">
-            <div class="factory-props-icon">⚙️</div>
-            <div class="factory-props-text">Seleccioná un elemento<br>para editar sus propiedades</div>
-          </div>
+        <aside class="factory-properties" id="factory-properties">
+          <div id="factory-blog-root"></div>
         </aside>
       </div>
 
@@ -912,12 +913,282 @@ function renderTextPanel(content) {
 
 }
 
+// ============================================================
+// PANEL BLOG — Vista tipo editor de texto con jerarquías
+// ============================================================
+
+// Divide un texto largo en párrafos legibles
+function splitIntoParagraphs(text) {
+  const clean = String(text || '').trim();
+  if (!clean) return [];
+
+  // Si tiene dobles saltos de línea, respetarlos
+  if (/\n\s*\n/.test(clean)) {
+    return clean.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+  }
+
+  // Si tiene saltos simples, agrupar de a 2-3 líneas
+  if (/\n/.test(clean)) {
+    const lines = clean.split(/\n/).map((l) => l.trim()).filter(Boolean);
+    const paras = [];
+    let buf = '';
+    for (const line of lines) {
+      buf = buf ? buf + ' ' + line : line;
+      if (buf.length > 200) {
+        paras.push(buf);
+        buf = '';
+      }
+    }
+    if (buf) paras.push(buf);
+    return paras;
+  }
+
+  // Texto corrido: dividir por oraciones y agrupar de a 3-4
+  const sentences = clean.split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿¡"«])/);
+  const paras = [];
+  let buf = '';
+  let count = 0;
+  for (const s of sentences) {
+    buf = buf ? buf + ' ' + s : s;
+    count++;
+    if (count >= 3 || buf.length > 280) {
+      paras.push(buf);
+      buf = '';
+      count = 0;
+    }
+  }
+  if (buf) paras.push(buf);
+  return paras;
+}
+
+// Renderiza el panel blog (siempre visible)
+function renderBlogPanel() {
+  const root = document.getElementById('factory-blog-root');
+  if (!root) return;
+
+  const w = state.currentWorkItem;
+
+  // Caso 1: no hay noticia cargada
+  if (!w) {
+    root.innerHTML = `
+      <div class="factory-blog">
+        <div class="factory-blog-header">
+          <span class="factory-blog-header-icon">📖</span>
+          <span>Texto de la noticia</span>
+        </div>
+        <div class="factory-props-empty" style="padding-top:40px;">
+          <div class="factory-props-icon">📝</div>
+          <div class="factory-props-text">
+            Cargá una noticia desde el <strong>Galpón</strong><br>
+            para ver acá el texto completo.
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const category = (w.wpCategories && w.wpCategories[0]) ||
+                   (w.categories && w.categories[0]) ||
+                   (w.analysis && w.analysis.detectedCategory) ||
+                   '';
+  const title = w.title || '';
+  const excerpt = w.excerpt || '';
+  const content = w.content || '';
+  const link = w.link || '';
+  const bodyText = content || excerpt;
+  const paragraphs = splitIntoParagraphs(bodyText);
+
+  const loadingBanner = state.blogContentLoading
+    ? `<div class="factory-blog-notice" style="background:rgba(88,166,255,0.08);border-color:var(--info);">
+         ⏳ <strong style="color:var(--info);">Cargando contenido completo…</strong>
+         Estamos bajando el artículo original. Mientras, te mostramos el resumen.
+       </div>`
+    : '';
+
+  const emptyBanner = (!content && !state.blogContentLoading && state.blogContentError)
+    ? `<div class="factory-blog-notice">
+         <strong>⚠ No se pudo bajar el texto completo</strong>
+         ${escapeHtml(state.blogContentError)}. Mostrando solo el resumen.
+       </div>`
+    : '';
+
+  root.innerHTML = `
+    <div class="factory-blog">
+      <div class="factory-blog-header">
+        <span class="factory-blog-header-icon">📖</span>
+        <span>Texto de la noticia</span>
+      </div>
+
+      ${link ? `
+        <a class="factory-blog-link" href="${escapeHtml(link)}" target="_blank" rel="noopener">
+          🔗 Ver noticia original ↗
+        </a>
+      ` : ''}
+
+      ${loadingBanner}
+      ${emptyBanner}
+
+      <div class="factory-blog-text" id="factory-blog-text">
+        ${category ? `
+          <div class="factory-blog-category">
+            ${escapeHtml(category)}
+          </div>
+        ` : ''}
+
+        ${title ? `
+          <h3>${escapeHtml(title)}</h3>
+        ` : ''}
+
+        ${excerpt && content ? `
+          <p class="factory-blog-excerpt">
+            ${escapeHtml(excerpt)}
+          </p>
+        ` : ''}
+
+        ${paragraphs.length > 0 ? paragraphs.map((p) => `
+          <p>${escapeHtml(p)}</p>
+        `).join('') : ''}
+      </div>
+    </div>
+  `;
+
+  setupSelectionToolbar();
+}
+
+// --- Botonera flotante al seleccionar texto ---
+let selToolbarEl = null;
+
+function setupSelectionToolbar() {
+  if (!selToolbarEl) {
+    selToolbarEl = document.createElement('div');
+    selToolbarEl.className = 'factory-sel-toolbar';
+    selToolbarEl.innerHTML = `
+      <button class="factory-sel-btn" data-field="category">Categoría</button>
+      <button class="factory-sel-btn" data-field="headline">Título</button>
+      <button class="factory-sel-btn" data-field="body">Bajada</button>
+    `;
+    document.body.appendChild(selToolbarEl);
+
+    document.addEventListener('mousedown', (e) => {
+      if (selToolbarEl && !selToolbarEl.contains(e.target)) {
+        selToolbarEl.classList.remove('is-visible');
+      }
+    });
+
+    selToolbarEl.querySelectorAll('.factory-sel-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const field = btn.dataset.field;
+        const selected = window.getSelection();
+        const text = String(selected).trim();
+        if (!text || !state.currentContent) {
+          selToolbarEl.classList.remove('is-visible');
+          return;
+        }
+        applyTextToCanvas(field, text);
+        selToolbarEl.classList.remove('is-visible');
+      });
+    });
+  }
+
+  const container = document.getElementById('factory-blog-text');
+  if (!container) return;
+
+  container.addEventListener('mouseup', () => {
+    const selection = window.getSelection();
+    const text = String(selection).trim();
+
+    if (!text || text.length < 3 || !selection.rangeCount) {
+      selToolbarEl.classList.remove('is-visible');
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    if (!container.contains(range.commonAncestorContainer)) {
+      selToolbarEl.classList.remove('is-visible');
+      return;
+    }
+
+    const rect = range.getBoundingClientRect();
+    selToolbarEl.style.left = Math.round(rect.left) + 'px';
+    selToolbarEl.style.top = Math.round(rect.bottom + 8) + 'px';
+    selToolbarEl.classList.add('is-visible');
+  });
+}
+
+// Aplica el texto seleccionado a un campo del canvas
+async function applyTextToCanvas(field, text) {
+  if (!state.currentContent) return;
+
+  const clean = text.replace(/\s+/g, ' ').trim();
+
+  if (field === 'category') {
+    state.currentContent.category = clean.toUpperCase();
+  } else if (field === 'headline') {
+    state.currentContent.headline = clean;
+  } else if (field === 'body') {
+    state.currentContent.body = clean;
+  }
+
+  await renderCanvas();
+  saveWorkingState(state).catch((err) => console.warn('[factory] persist falló', err));
+
+  const labels = { category: 'Categoría', headline: 'Título', body: 'Bajada' };
+  const container = document.querySelector('.toast-container');
+  if (container) {
+    const t = document.createElement('div');
+    t.className = 'toast toast-success';
+    t.textContent = `✓ ${labels[field]} actualizado`;
+    container.appendChild(t);
+    setTimeout(() => t.classList.add('toast-visible'), 10);
+    setTimeout(() => {
+      t.classList.remove('toast-visible');
+      setTimeout(() => t.remove(), 300);
+    }, 2000);
+  }
+}
+
+// Auto-descarga el contenido completo del artículo si falta
+async function autoFetchFullContent() {
+  const w = state.currentWorkItem;
+  if (!w || !w.link) return;
+
+  if (w.content && w.content.length > 300) {
+    state.blogContentError = null;
+    return;
+  }
+
+  state.blogContentLoading = true;
+  state.blogContentError = null;
+
+  try {
+    const data = await extractFromLink(w.link);
+    if (state.currentWorkItem !== w) return;
+    if (data && data.content && data.content.length > (w.content || '').length) {
+      w.content = data.content;
+      await store.set('workItems', w.id, w);
+      console.log(`[factory] Contenido completo bajado: ${data.content.length} chars`);
+    }
+  } catch (err) {
+    if (state.currentWorkItem !== w) return;
+    console.warn('[factory] No se pudo bajar el contenido completo:', err.message);
+    state.blogContentError = err.message || 'Error desconocido';
+  } finally {
+    if (state.currentWorkItem === w) {
+      state.blogContentLoading = false;
+      renderBlogPanel();
+    }
+  }
+}
+
 // --- Cargar un workItem ---
 export async function loadWorkItemIntoFactory(workItemId) {
   const workItem = await store.get('workItems', workItemId);
   if (!workItem) return;
 
   state.currentWorkItem = workItem;
+  state.blogContentError = null;
+  state.blogContentLoading = false;
 
   const info = document.getElementById('factory-workitem-info');
   if (info) {
@@ -951,6 +1222,13 @@ export async function loadWorkItemIntoFactory(workItemId) {
 
   // Auto-generar al cargar
   await generateContent();
+
+  // Auto-descargar el contenido completo (no bloquea)
+  state.blogContentLoading = Boolean(
+    workItem.link && !(workItem.content && workItem.content.length > 300)
+  );
+  renderBlogPanel();
+  autoFetchFullContent();
 }
 
 // --- Cambiar formato ---
@@ -1962,6 +2240,10 @@ function renderLogoPanel() {
         <label>Opacidad <span id="lg-opacity-val" style="color:var(--factory)">${Math.round((cfg.opacity ?? 1) * 100)}%</span></label>
         <input type="range" id="lg-opacity" class="factory-input" min="10" max="100" step="5" value="${Math.round((cfg.opacity ?? 1) * 100)}">
       </div>
+            <div class="factory-field">
+        <label>Posición por defecto</label>
+        <button class="factory-mini-btn" id="lg-reset-pos" style="width:100%">↻ Reset a X=74, Y=5</button>
+      </div>
     </div>
   `;
 
@@ -2048,6 +2330,15 @@ function renderLogoPanel() {
     panel.querySelector('#lg-opacity-val').textContent = v + '%';
     await persistAndRedraw({ opacity: v / 100 });
   });
+  
+  // Reset posición a 74/5
+  const resetPosBtn = panel.querySelector('#lg-reset-pos');
+  if (resetPosBtn) {
+    resetPosBtn.addEventListener('click', async () => {
+      await persistAndRedraw({ x: 74, y: 5 });
+      renderLogoPanel();
+    });
+  }
 }
 
 // --- Aplica el preset marcado como default para un brand ---
@@ -2139,6 +2430,9 @@ export async function initFactory() {
 
   setFormat('post');
   setTool('texto');
+
+  // Panel Blog: mostrar estado inicial (vacío)
+  renderBlogPanel();
 }
 
 // --- Cargar los logos desde IndexedDB o assets/logos/ ---

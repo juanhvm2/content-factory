@@ -131,7 +131,7 @@
 .factory-body {
   flex: 1;
   display: grid;
-  grid-template-columns: 72px 260px 1fr 300px;
+  grid-template-columns: 72px 260px 1fr 450px;
   gap: 1px;
   background: var(--border-1);
   min-height: 0;
@@ -339,6 +339,114 @@
 .factory-props-text {
   font-size: 12px;
   line-height: 1.5;
+}
+
+.factory-blog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 100%;
+}
+
+.factory-blog-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-1);
+  color: var(--text-1);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.factory-blog-header-icon {
+  font-size: 16px;
+}
+
+.factory-blog-link {
+  color: var(--factory);
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.factory-blog-link:hover {
+  text-decoration: underline;
+}
+
+.factory-blog-notice {
+  padding: var(--space-3);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  background: var(--bg-2);
+  color: var(--text-3);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.factory-blog-text {
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.factory-blog-category {
+  margin-bottom: 6px;
+  color: var(--factory);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.factory-blog-text h3 {
+  margin: 0 0 var(--space-3);
+  color: var(--text-1);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.factory-blog-text p {
+  margin: 0 0 var(--space-3);
+}
+
+.factory-blog-text .factory-blog-excerpt {
+  margin-bottom: var(--space-4);
+  padding-left: 12px;
+  border-left: 2px solid var(--border-2);
+  color: var(--text-3);
+  font-style: italic;
+}
+
+.factory-sel-toolbar {
+  position: fixed;
+  z-index: 1000;
+  display: none;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-2);
+  background: var(--bg-3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.factory-sel-toolbar.is-visible {
+  display: flex;
+}
+
+.factory-sel-btn {
+  padding: 5px 8px;
+  border: 0;
+  border-radius: var(--radius-1);
+  background: transparent;
+  color: var(--text-1);
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.factory-sel-btn:hover {
+  background: var(--factory);
+  color: #fff;
 }
 
 /* ---------- SLIDES BAR (abajo) ---------- */
