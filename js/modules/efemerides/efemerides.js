@@ -5,6 +5,7 @@ import * as store from '../../core/store.js?v=51';
 import { getEfemeridesForMonth } from '../../services/efemerides-service.js?v=51';
 import { REGIONS, getRegion, getCategory, CATEGORIES } from '../../data/categories.js?v=51';
 import { addWorkItem } from '../warehouse/warehouse.js?v=51';
+import { getImagesForEfemeride } from '../../services/efemerides-images.js?v=50';
 
 const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -18,6 +19,8 @@ const state = {
   filterRegion: 'all',
   search: '',
   prefixTitles: true,
+  selectedImages: {},   // { efemerideId: imageUrl }
+  imagesCache: {},      // { efemerideId: [ ...imágenes ] }
 };
 
 export async function initEfemerides() {
@@ -313,25 +316,87 @@ function openModal(id) {
   modal.querySelector('#efemerides-modal-title').textContent =
     `${item.day} de ${MONTHS_ES[state.month - 1]} de ${item.year}`;
   modal.querySelector('#efemerides-modal-body').innerHTML = `
-    <h2 class="efemerides-modal-title">${escapeHtml(item.title)}</h2>
+    <h2 class="efemerides-modal-title">${escapeHtml(prefixTitle(item))}</h2>
     <div class="efemerides-modal-chips">
       <span class="efemerides-cat" style="--cat-color:${category ? category.color : '#8b949e'}">${escapeHtml(categoryName)}</span>
       <span class="efemerides-cat efemerides-region-chip">${regionFlag} ${escapeHtml(regionName)}</span>
       <span class="efemerides-cat efemerides-date-chip">${item.day} de ${MONTHS_ES[state.month - 1]} de ${item.year}</span>
     </div>
     <p class="efemerides-modal-description">${escapeHtml(item.description)}</p>
+
+    <div class="efemerides-images-section">
+      <div class="efemerides-images-title">Elegí una imagen (5 opciones)</div>
+      <div class="efemerides-images-grid" id="efemerides-images-grid">
+        <div class="efemerides-images-loading">⏳ Buscando imágenes…</div>
+      </div>
+    </div>
   `;
 
   const linkElement = modal.querySelector('#efemerides-modal-link');
   linkElement.href = item.link || '#';
   linkElement.style.display = item.link ? 'inline-flex' : 'none';
   modal.classList.add('is-open');
+  loadImagesForModal(item);
+}
+
+async function loadImagesForModal(item) {
+  const grid = document.getElementById('efemerides-images-grid');
+  if (!grid) return;
+
+  let images = state.imagesCache[item.id];
+  if (!images) {
+    try {
+      images = await getImagesForEfemeride(item, 5);
+      state.imagesCache[item.id] = images;
+    } catch (err) {
+      console.warn('[efemerides] Error buscando imágenes:', err);
+      images = [];
+    }
+  }
+
+  const modal = document.getElementById('efemerides-modal');
+  if (!grid.isConnected || !modal || modal.dataset.itemId !== item.id) return;
+
+  if (images.length === 0) {
+    grid.innerHTML = '<div class="efemerides-images-empty">No se encontraron imágenes para esta efeméride.</div>';
+    return;
+  }
+
+  const current = state.selectedImages[item.id] || null;
+
+  grid.innerHTML = images.map((img, i) => {
+    const thumb = img.thumbnail || img.url;
+    const isActive = current === img.url;
+    return `
+      <button class="efemerides-img-option ${isActive ? 'is-active' : ''}" data-idx="${i}" type="button">
+        <div class="efemerides-img-thumb-wrap">
+          <img src="${escapeHtml(thumb)}" alt="${escapeHtml(img.description || img.title)}" loading="lazy" onerror="this.style.opacity=0.2">
+        </div>
+        <div class="efemerides-img-meta">
+          <div class="efemerides-img-desc">${escapeHtml((img.description || img.title || 'Imagen').slice(0, 80))}</div>
+          <div class="efemerides-img-credit">${escapeHtml((img.author || '').slice(0, 40))}</div>
+        </div>
+      </button>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('.efemerides-img-option').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      const img = images[idx];
+      if (!img) return;
+      state.selectedImages[item.id] = img.url;
+      grid.querySelectorAll('.efemerides-img-option').forEach((button) => button.classList.remove('is-active'));
+      btn.classList.add('is-active');
+    });
+  });
 }
 
 async function sendToWarehouse(id) {
   const item = state.items.find((entry) => entry.id === id);
   if (!item) return;
 
+  const chosenImage = state.selectedImages[item.id] || item.imageUrl || null;
   const newsLikeItem = {
     id: item.id,
     sourceId: 'efemerides',
@@ -342,8 +407,8 @@ async function sendToWarehouse(id) {
     excerpt: item.description.slice(0, 220),
     content: item.description,
     link: item.link || '',
-    imageUrl: null,
-    images: [],
+    imageUrl: chosenImage,
+    images: chosenImage ? [chosenImage] : [],
     pubDate: null,
     fetchedAt: new Date().toISOString(),
   };

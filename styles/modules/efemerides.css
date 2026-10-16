@@ -281,3 +281,99 @@
   cursor: pointer;
   margin: 0;
 }
+
+.efemerides-images-section {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-1);
+}
+
+.efemerides-images-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-3);
+  margin-bottom: var(--space-3);
+}
+
+.efemerides-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-2);
+}
+
+.efemerides-images-loading,
+.efemerides-images-empty {
+  grid-column: 1 / -1;
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+.efemerides-img-option {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  background: var(--bg-2);
+  border: 2px solid transparent;
+  border-radius: var(--radius-2);
+  color: var(--text-2);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.efemerides-img-option:hover {
+  border-color: color-mix(in srgb, var(--efemerides) 40%, transparent);
+}
+
+.efemerides-img-option.is-active {
+  border-color: var(--efemerides);
+  background: var(--efemerides-glow);
+}
+
+.efemerides-img-thumb-wrap {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--bg-0);
+  border-radius: var(--radius-1);
+  overflow: hidden;
+}
+
+.efemerides-img-thumb-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.efemerides-img-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 32px;
+}
+
+.efemerides-img-desc {
+  font-size: 11px;
+  color: var(--text-2);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.efemerides-img-credit {
+  font-size: 9px;
+  color: var(--text-4);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
