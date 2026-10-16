@@ -1,7 +1,7 @@
 // cleanup-service.js
 // Limpieza automática y manual de workItems y pieces viejos.
 
-import * as store from '../core/store.js?v=51';
+import * as store from '../core/store.js?v=52';
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
