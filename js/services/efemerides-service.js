@@ -3,7 +3,7 @@
 // Fuente: API oficial de Wikimedia ("On this day") en español.
 // Sin cuenta, sin API key.
 
-import * as store from '../core/store.js?v=50';
+import * as store from '../core/store.js?v=51';
 
 const API_BASE = 'https://api.wikimedia.org/feed/v1/wikipedia/es/onthisday/events';
 const CONCURRENCY = 6;

@@ -2,11 +2,11 @@
 // Módulo Galpón de Recolección. Recibe noticias del Bosque
 // y las organiza como trabajos en cola de producción.
 
-import * as store from '../../core/store.js?v=50';
-import { getRegion, getCategory } from '../../data/categories.js?v=50';
-import { analyzeNews } from '../../services/classifier.js?v=50';
-import { findDuplicate } from '../../services/deduplicator.js?v=50';
-import { cleanupOldItems } from '../../services/cleanup-service.js?v=50';
+import * as store from '../../core/store.js?v=51';
+import { getRegion, getCategory } from '../../data/categories.js?v=51';
+import { analyzeNews } from '../../services/classifier.js?v=51';
+import { findDuplicate } from '../../services/deduplicator.js?v=51';
+import { cleanupOldItems } from '../../services/cleanup-service.js?v=51';
 const state = {
   items: [],
   filterBrand: 'all',
@@ -450,7 +450,7 @@ async function handleCleanupClick() {
 
     await refresh();
     try {
-      const qualityMod = await import('../quality/quality.js?v=50');
+      const qualityMod = await import('../quality/quality.js?v=51');
       await qualityMod.refreshQuality();
     } catch (e) {
       console.warn('[warehouse] No se pudo refrescar Calidad', e);
@@ -475,7 +475,7 @@ async function handleCleanupClick() {
 
 // --- Probar el motor determinista ---
 async function testEngine(id) {
-  const { generateCopys } = await import('../../services/rules-engine.js?v=50');
+  const { generateCopys } = await import('../../services/rules-engine.js?v=51');
   const item = await store.get('workItems', id);
   if (!item) return;
 
@@ -560,7 +560,7 @@ function showCopyModal(copys, title) {
 }
 
 async function sendToFactory(id) {
-  const { loadWorkItemIntoFactory } = await import('../factory/factory.js?v=50');
+  const { loadWorkItemIntoFactory } = await import('../factory/factory.js?v=51');
   // Cambiar de módulo visualmente
   document.querySelectorAll('.module-item').forEach((i) => {
     i.classList.toggle('is-active', i.dataset.module === 'factory');

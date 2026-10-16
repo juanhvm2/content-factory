@@ -3,7 +3,7 @@
 // Analiza título y texto, detecta categoría, keywords, entidades,
 // urgencia y sugiere formatos de contenido.
 
-import { CATEGORIES } from '../data/categories.js?v=50';
+import { CATEGORIES } from '../data/categories.js?v=51';
 
 // Palabras vacías en español (no aportan significado)
 const STOPWORDS = new Set([
