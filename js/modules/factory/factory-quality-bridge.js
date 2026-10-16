@@ -2,8 +2,8 @@
 // Puente entre la Fábrica y el módulo Calidad.
 // Guarda una pieza (o varias) en el store 'pieces' de IndexedDB.
 
-import * as store from '../../core/store.js?v=49';
-import { recargarImagenesConCors } from './factory-exporter.js?v=49';
+import * as store from '../../core/store.js?v=50';
+import { recargarImagenesConCors } from './factory-exporter.js?v=50';
 
 // --- Genera un ID único para la pieza ---
 function generatePieceId() {
@@ -72,7 +72,7 @@ export async function savePiecesToQuality(factoryState, options = {}) {
   }
 
   // Importar renderCanvas dinámicamente y redibujar (para limpiar el canvas tainted)
-  const factoryModule = await import('./factory.js?v=49');
+  const factoryModule = await import('./factory.js?v=50');
   const renderCanvas = factoryModule.__renderCanvasForBridge;
   if (!renderCanvas) throw new Error('No se pudo acceder a renderCanvas');
 

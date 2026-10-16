@@ -8,7 +8,7 @@
 //  4. Si no → se carga el PNG oficial desde assets/
 //  5. Si no existe el PNG oficial → se dibuja el texto "RANDOM" como fallback
 
-import * as store from '../../core/store.js?v=49';
+import * as store from '../../core/store.js?v=50';
 
 const DEFAULT_LOGO_CONFIG = {
   scale: 100,
