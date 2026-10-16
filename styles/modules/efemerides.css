@@ -1,82 +1,283 @@
 /* efemerides.css */
-/* Módulo Efemérides. Por ahora: cartel "En construcción". */
+/* Estilos del calendario histórico. */
 
 :root {
   --efemerides: #f472b6;
   --efemerides-glow: rgba(244, 114, 182, 0.15);
 }
 
-/* Cabecera del módulo */
 .module-view[data-module-view="efemerides"] .module-header h2 {
   color: var(--efemerides);
 }
 
-/* Pantalla de "en construcción" */
-.efemerides-construction {
+.module-view[data-module-view="efemerides"] .module-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.efemerides-month-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0 auto var(--space-5);
+}
+
+.efemerides-month-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  background: var(--bg-1);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.efemerides-month-btn:hover {
+  border-color: var(--efemerides);
+  color: var(--efemerides);
+}
+
+.efemerides-month-label {
+  min-width: 180px;
+  color: var(--text-1);
+  font-size: 19px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.module-view[data-module-view="efemerides"] .forest-search:focus {
+  border-color: var(--efemerides);
+  box-shadow: 0 0 0 3px var(--efemerides-glow);
+}
+
+.efemerides-category-bar {
+  margin-bottom: var(--space-4);
+}
+
+.module-view[data-module-view="efemerides"] .category-btn[data-category="all"] {
+  --cat-color: var(--efemerides);
+}
+
+.efemerides-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+.efemerides-card {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  background: var(--bg-1);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+}
+
+.efemerides-card:hover,
+.efemerides-card:focus-visible {
+  border-color: color-mix(in srgb, var(--efemerides) 55%, var(--border-1));
+  background: var(--bg-2);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.efemerides-card-date {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  min-height: 60vh;
-  padding: var(--space-6);
-  gap: var(--space-4);
-}
-
-.efemerides-construction-icon {
-  font-size: 96px;
-  line-height: 1;
-  filter: drop-shadow(0 8px 24px rgba(244, 114, 182, 0.35));
-  animation: efemerides-float 3s ease-in-out infinite;
-}
-
-@keyframes efemerides-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.efemerides-construction-badge {
-  display: inline-block;
-  padding: 6px 14px;
+  align-self: start;
+  min-height: 64px;
+  border-radius: var(--radius-2);
   background: var(--efemerides-glow);
   color: var(--efemerides);
-  border: 1px solid rgba(244, 114, 182, 0.4);
-  border-radius: 999px;
-  font-size: 11px;
+}
+
+.efemerides-day {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.efemerides-month {
+  margin-top: 4px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 1.2px;
+  letter-spacing: 0.7px;
   text-transform: uppercase;
 }
 
-.efemerides-construction-title {
-  font-size: 42px;
-  font-weight: 800;
-  letter-spacing: -1px;
+.efemerides-card-body {
+  min-width: 0;
+}
+
+.efemerides-card-year {
+  margin-bottom: 5px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.efemerides-card-title {
+  margin: 0 0 var(--space-2);
   color: var(--text-1);
-  margin: 0;
-  line-height: 1.1;
+  font-size: 14px;
+  line-height: 1.35;
 }
 
-.efemerides-construction-sub {
-  font-size: 15px;
+.efemerides-card-desc {
+  margin: 0 0 var(--space-3);
   color: var(--text-3);
-  max-width: 520px;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.efemerides-construction-hint {
-  margin-top: var(--space-4);
-  padding: var(--space-3) var(--space-4);
-  background: var(--bg-1);
-  border: 1px dashed var(--border-1);
-  border-radius: var(--radius-3);
-  color: var(--text-3);
-  font-size: 13px;
-  max-width: 520px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
-.efemerides-construction-hint strong {
+.efemerides-cat {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--cat-color, var(--text-3)) 35%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cat-color, var(--text-3)) 12%, transparent);
+  color: var(--cat-color, var(--text-3));
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.efemerides-card-actions {
+  display: flex;
+  grid-column: 2;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.efemerides-card-actions .btn {
+  min-height: 30px;
+  font-size: 11px;
+}
+
+.btn-efemerides-send {
+  border-color: color-mix(in srgb, var(--efemerides) 45%, var(--border-1));
   color: var(--efemerides);
+}
+
+.btn-efemerides-send:hover {
+  background: var(--efemerides-glow);
+}
+
+.efemerides-empty {
+  grid-column: 1 / -1;
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--border-1);
+  border-radius: var(--radius-3);
+  color: var(--text-3);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.efemerides-error {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border-1));
+  color: var(--danger);
+}
+
+.efemerides-error small {
+  color: var(--text-3);
+}
+
+.efemerides-modal {
+  max-width: 680px;
+}
+
+.efemerides-modal-title {
+  margin: 0 0 var(--space-3);
+  color: var(--text-1);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.efemerides-modal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.efemerides-region-chip {
+  --cat-color: var(--info);
+}
+
+.efemerides-date-chip {
+  --cat-color: var(--text-3);
+}
+
+.efemerides-modal-description {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .module-view[data-module-view="efemerides"] .module-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .efemerides-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .efemerides-month-label {
+    min-width: 150px;
+    font-size: 17px;
+  }
+
+  .efemerides-card {
+    padding: var(--space-3);
+  }
+
+  .efemerides-card-actions {
+    grid-column: 1 / -1;
+    padding-left: 66px;
+  }
+}
+
+.efemerides-prefix-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+}
+
+.efemerides-prefix-toggle:hover {
+  border-color: var(--efemerides);
+  color: var(--text-1);
+}
+
+.efemerides-prefix-toggle input[type="checkbox"] {
+  accent-color: var(--efemerides);
+  cursor: pointer;
+  margin: 0;
 }

@@ -3,7 +3,7 @@
 // fuentes, noticias, piezas, plantillas, reglas y todo lo que la app necesite.
 
 const DB_NAME = 'content-factory';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 // Todas las "tablas" del sistema.
 // Cada una guarda un tipo de dato distinto.
@@ -19,6 +19,7 @@ export const STORES = [
   'rules',       // reglas aprendidas
   'actionLog',   // registro de acciones para el aprendizaje
   'presets',     // presets de diseño
+  'efemerides',  // efemérides históricas (cache de API)
 ];
 
 let dbPromise = null;
