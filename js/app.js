@@ -2,6 +2,7 @@
 // Punto de entrada de la aplicación.
 
 import * as store from './core/store.js?v=52';
+import { initFestivos } from './modules/festivos/festivos.js?v=52';
 import { initEfemerides } from './modules/efemerides/efemerides.js?v=52';
 import { initForest } from './modules/forest/forest_v2.js?v=52';
 import { initWarehouse } from './modules/warehouse/warehouse.js?v=52';
@@ -179,6 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.warn('[app] Auto-limpieza falló:', err);
   }
 
+  await initFestivos();
   await initEfemerides();
   await initForest();
   await initWarehouse();

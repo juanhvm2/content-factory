@@ -1,0 +1,406 @@
+/* festivos.css */
+/* Estilos del módulo Días Festivos. */
+
+:root {
+  --festivos: #fb923c;
+  --festivos-glow: rgba(251, 146, 60, 0.15);
+}
+
+.module-view[data-module-view="festivos"] .module-header h2 {
+  color: var(--festivos);
+}
+
+.module-view[data-module-view="festivos"] .module-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.festivos-month-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0 auto var(--space-5);
+}
+
+.festivos-month-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  background: var(--bg-1);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.festivos-month-btn:hover {
+  border-color: var(--festivos);
+  color: var(--festivos);
+}
+
+.festivos-month-label {
+  min-width: 180px;
+  color: var(--text-1);
+  font-size: 19px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.module-view[data-module-view="festivos"] .forest-search:focus {
+  border-color: var(--festivos);
+  box-shadow: 0 0 0 3px var(--festivos-glow);
+}
+
+.festivos-type-bar {
+  margin-bottom: var(--space-4);
+}
+
+.festivos-type-tabs {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  padding: var(--space-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  background: var(--bg-1);
+}
+
+.festivos-type-btn {
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-2);
+  background: transparent;
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.festivos-type-btn:hover {
+  background: var(--bg-2);
+  color: var(--text-1);
+}
+
+.festivos-type-btn.is-active {
+  border-color: color-mix(in srgb, var(--festivos) 40%, transparent);
+  background: var(--festivos-glow);
+  color: var(--festivos);
+}
+
+.festivos-prefix-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  background: var(--bg-1);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+}
+
+.festivos-prefix-toggle:hover {
+  border-color: var(--festivos);
+  color: var(--text-1);
+}
+
+.festivos-prefix-toggle input[type="checkbox"] {
+  margin: 0;
+  accent-color: var(--festivos);
+  cursor: pointer;
+}
+
+.festivos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+.festivos-card {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-3);
+  background: var(--bg-1);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+}
+
+.festivos-card:hover,
+.festivos-card:focus-visible {
+  border-color: color-mix(in srgb, var(--festivos) 55%, var(--border-1));
+  background: var(--bg-2);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.festivos-card-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  min-height: 64px;
+  border-radius: var(--radius-2);
+  background: var(--festivos-glow);
+  color: var(--festivos);
+}
+
+.festivos-day {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.festivos-month {
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.festivos-card-body {
+  min-width: 0;
+}
+
+.festivos-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
+
+.festivos-card-year {
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.festivos-type-chip,
+.festivos-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid var(--border-1);
+  border-radius: 999px;
+  background: var(--bg-2);
+  color: var(--text-2);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.festivos-type-chip.is-holiday {
+  border-color: color-mix(in srgb, var(--festivos) 40%, transparent);
+  background: var(--festivos-glow);
+  color: var(--festivos);
+}
+
+.festivos-type-chip.is-celebration {
+  border-color: color-mix(in srgb, var(--success) 35%, transparent);
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  color: var(--success);
+}
+
+.festivos-card-title {
+  margin: 0 0 var(--space-2);
+  color: var(--text-1);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.festivos-card-desc {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.festivos-empty {
+  grid-column: 1 / -1;
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--border-1);
+  border-radius: var(--radius-3);
+  color: var(--text-3);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.festivos-error {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border-1));
+  color: var(--danger);
+}
+
+.festivos-error small {
+  color: var(--text-3);
+}
+
+.festivos-modal {
+  max-width: 680px;
+}
+
+.festivos-modal-title {
+  margin: 0 0 var(--space-3);
+  color: var(--text-1);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.festivos-modal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.festivos-region-chip {
+  border-color: color-mix(in srgb, var(--info) 35%, transparent);
+  color: var(--info);
+}
+
+.festivos-date-chip {
+  color: var(--text-3);
+}
+
+.festivos-modal-description {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.festivos-images-section {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-1);
+}
+
+.festivos-images-title {
+  margin-bottom: var(--space-3);
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.festivos-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-2);
+}
+
+.festivos-images-loading,
+.festivos-images-empty {
+  grid-column: 1 / -1;
+  padding: var(--space-4);
+  color: var(--text-3);
+  font-size: 12px;
+  text-align: center;
+}
+
+.festivos-img-option {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-2);
+  background: var(--bg-2);
+  color: var(--text-2);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.festivos-img-option:hover {
+  border-color: color-mix(in srgb, var(--festivos) 40%, transparent);
+}
+
+.festivos-img-option.is-active {
+  border-color: var(--festivos);
+  background: var(--festivos-glow);
+}
+
+.festivos-img-thumb-wrap {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-1);
+  background: var(--bg-0);
+}
+
+.festivos-img-thumb-wrap img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.festivos-img-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 42px;
+}
+
+.festivos-img-desc {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.3;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.festivos-img-credit,
+.festivos-img-license {
+  overflow: hidden;
+  color: var(--text-4);
+  font-size: 9px;
+  font-style: italic;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .module-view[data-module-view="festivos"] .module-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .festivos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .festivos-month-label {
+    min-width: 150px;
+    font-size: 17px;
+  }
+
+  .festivos-card {
+    padding: var(--space-3);
+  }
+}

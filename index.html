@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles/modules/factory.css">
   <link rel="stylesheet" href="styles/modules/quality.css">
   <link rel="stylesheet" href="styles/modules/efemerides.css">
+  <link rel="stylesheet" href="styles/modules/festivos.css">
 </head>
 <body>
   <div class="app">
@@ -33,6 +34,12 @@
     <div class="app-body">
       <nav class="module-nav">
         <div class="module-nav-title">Módulos</div>
+
+        <button class="module-item" data-module="festivos">
+          <span class="module-icon">🎉</span>
+          <span class="module-name">Días Festivos</span>
+          <span class="module-count">0</span>
+        </button>
 
         <button class="module-item" data-module="efemerides">
           <span class="module-icon">📅</span>
@@ -66,6 +73,10 @@
       </nav>
 
       <main class="app-main">
+                <section class="module-view" data-module-view="festivos">
+          <div id="festivos-root"></div>
+        </section>
+
                 <section class="module-view" data-module-view="efemerides">
           <div id="efemerides-root"></div>
         </section>
@@ -241,6 +252,7 @@
     </div>
   </div>
 
+  <script src="js/config.js?v=52"></script>
   <script type="module" src="js/app.js?v=52"></script>
 </body>
 </html>

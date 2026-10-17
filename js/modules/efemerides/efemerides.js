@@ -16,9 +16,11 @@ const state = {
   loading: false,
   error: null,
   filterCategory: 'all',
+  filterToday: false,
+  filterDay: null,
   filterRegion: 'all',
   search: '',
-  prefixTitles: true,
+  prefixTitles: false,
   selectedImages: {},   // { efemerideId: imageUrl }
   imagesCache: {},      // { efemerideId: [ ...imágenes ] }
 };
@@ -58,9 +60,19 @@ function injectUI() {
         <button class="region-btn is-active" data-region="all">Todas</button>
         ${REGIONS.map((r) => `<button class="region-btn" data-region="${r.id}">${r.flag} ${r.name}</button>`).join('')}
       </div>
+      <div class="region-tabs" id="efemerides-today-filter">
+        <button class="region-btn" id="efemerides-today-btn" title="Mostrar solo las del día de hoy">📅 Hoy</button>
+      </div>
+      <div class="region-tabs" id="efemerides-day-filter">
+        <label style="display:flex;align-items:center;gap:6px;padding:0 8px;font-size:11px;color:var(--text-3);">
+          Día:
+          <input type="number" id="efemerides-day-input" min="1" max="31" placeholder="--"
+            style="width:52px;padding:4px 6px;background:var(--bg-1);border:1px solid var(--border-1);border-radius:4px;color:var(--text-1);font-family:inherit;font-size:11px;">
+        </label>
+      </div>
       <input type="text" id="efemerides-search" class="forest-search" placeholder="Buscar efemérides…" />
       <label class="efemerides-prefix-toggle">
-        <input type="checkbox" id="efemerides-prefix" checked>
+        <input type="checkbox" id="efemerides-prefix">
         <span>Prefijar con "Un día como hoy"</span>
       </label>
     </div>
@@ -104,6 +116,19 @@ function bindEvents() {
       document.querySelectorAll('#efemerides-categories .category-btn').forEach((b) => b.classList.toggle('is-active', b === btn));
       renderGrid();
     });
+  });
+
+  document.getElementById('efemerides-today-btn')?.addEventListener('click', () => {
+    state.filterToday = !state.filterToday;
+    document.getElementById('efemerides-today-btn')
+      .classList.toggle('is-active', state.filterToday);
+    renderGrid();
+  });
+
+  document.getElementById('efemerides-day-input')?.addEventListener('input', (e) => {
+    const v = parseInt(e.target.value, 10);
+    state.filterDay = (isNaN(v) || v < 1 || v > 31) ? null : v;
+    renderGrid();
   });
 
   document.getElementById('efemerides-search')?.addEventListener('input', (e) => {
@@ -168,6 +193,13 @@ async function loadMonth(forceRefresh = false) {
 
 function filterItems() {
   return state.items.filter((item) => {
+    if (state.filterDay && item.day !== state.filterDay) return false;
+    if (state.filterToday) {
+      const now = new Date();
+      if (item.day !== now.getDate() || item.month !== (now.getMonth() + 1) || item.year !== now.getFullYear()) {
+        return false;
+      }
+    }
     if (state.filterRegion !== 'all' && item.region !== state.filterRegion) return false;
     if (state.filterCategory !== 'all' && item.category !== state.filterCategory) return false;
     if (state.search) {
