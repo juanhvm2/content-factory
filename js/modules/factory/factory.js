@@ -64,6 +64,12 @@ const state = {
     // Preset activo
   activePresetId: null,
   activePresetBrand: null,
+  frasesConfig: {
+    design: 1,
+    resolution: 'post',
+    showBorders: true,
+    showChecks: true
+  },
   // Logos (imágenes + config por brand)
   logos: {
     random: null,
@@ -125,7 +131,7 @@ const FORMAT_DIMS = {
   story: { w: 1080, h: 1920, label: 'Historia', slides: false },
   stories: { w: 1080, h: 1920, label: 'Historias', slides: true },
   carousel: { w: 1080, h: 1350, label: 'Carrusel', slides: true },
-  frases: { w: 1080, h: 1350, label: 'Frases', slides: false, underConstruction: true },
+  frases: { w: 1080, h: 1350, label: 'Frases', slides: true },
   grilla: { w: 1080, h: 1920, label: 'Grilla', slides: false, underConstruction: true },
 };
 
@@ -871,15 +877,57 @@ function renderTextPanel(content) {
   const panel = document.getElementById('factory-tool-panel');
   if (!panel) return;
 
+  const isFrases = state.format === 'frases';
+  const isDesign3 = isFrases && state.frasesConfig.design === 3;
+
+  let frasesFields = '';
+  if (isFrases) {
+    if (isDesign3) {
+      frasesFields = `
+        <div class="factory-field">
+          <label>Frase 1</label>
+          <textarea id="fc-frase1" class="factory-input" rows="2">${escapeHtml(content.frase1 || '')}</textarea>
+        </div>
+        <div class="factory-field">
+          <label>Frase 2</label>
+          <textarea id="fc-frase2" class="factory-input" rows="2">${escapeHtml(content.frase2 || '')}</textarea>
+        </div>
+        <div class="factory-field">
+          <label>Frase 3</label>
+          <textarea id="fc-frase3" class="factory-input" rows="2">${escapeHtml(content.frase3 || '')}</textarea>
+        </div>
+      `;
+    } else {
+      frasesFields = `
+        <div class="factory-field">
+          <label>Frase</label>
+          <textarea id="fc-headline" class="factory-input" rows="3">${escapeHtml(content.headline || '')}</textarea>
+        </div>
+        <div class="factory-field">
+          <label>Autor</label>
+          <input type="text" id="fc-autor" class="factory-input" value="${escapeHtml(content.autor || '')}">
+        </div>
+        <div class="factory-field">
+          <label>Cargo</label>
+          <input type="text" id="fc-cargo" class="factory-input" value="${escapeHtml(content.cargo || '')}">
+        </div>
+      `;
+    }
+  }
+
   panel.innerHTML = `
     <div class="factory-panel-section">
-      <div class="factory-panel-section-title">Contenido generado</div>
+      <div class="factory-panel-section-title">Contenido ${isFrases ? 'de la Frase' : 'generado'}</div>
 
+      ${!isFrases ? `
       <div class="factory-field">
         <label>Categoría</label>
         <input type="text" id="fc-category" class="factory-input" value="${escapeHtml(content.category || '')}">
       </div>
+      ` : ''}
 
+      ${!isFrases || !isDesign3 ? `
+      ${isFrases ? frasesFields : `
       <div class="factory-field">
         <label>Headline</label>
         <textarea id="fc-headline" class="factory-input" rows="3">${escapeHtml(content.headline || '')}</textarea>
@@ -889,28 +937,26 @@ function renderTextPanel(content) {
         <label>Body</label>
         <textarea id="fc-body" class="factory-input" rows="5">${escapeHtml((content.body || '').replace(/\*\*/g, ''))}</textarea>
       </div>
-
-
+      `}
+      ` : frasesFields}
     </div>
   `;
 
-  // Listeners: por ahora solo actualizan state y vuelven a renderizar
-  const catInput = panel.querySelector('#fc-category');
-  const headInput = panel.querySelector('#fc-headline');
-  const bodyInput = panel.querySelector('#fc-body');
-
   const updateContent = async () => {
-    state.currentContent.category = catInput.value;
-    state.currentContent.headline = headInput.value;
-    state.currentContent.body = bodyInput.value;
+    if (document.getElementById('fc-category')) state.currentContent.category = document.getElementById('fc-category').value;
+    if (document.getElementById('fc-headline')) state.currentContent.headline = document.getElementById('fc-headline').value;
+    if (document.getElementById('fc-body')) state.currentContent.body = document.getElementById('fc-body').value;
+    if (document.getElementById('fc-autor')) state.currentContent.autor = document.getElementById('fc-autor').value;
+    if (document.getElementById('fc-cargo')) state.currentContent.cargo = document.getElementById('fc-cargo').value;
+    if (document.getElementById('fc-frase1')) state.currentContent.frase1 = document.getElementById('fc-frase1').value;
+    if (document.getElementById('fc-frase2')) state.currentContent.frase2 = document.getElementById('fc-frase2').value;
+    if (document.getElementById('fc-frase3')) state.currentContent.frase3 = document.getElementById('fc-frase3').value;
     await renderCanvas();
   };
 
-  catInput.addEventListener('input', updateContent);
-  headInput.addEventListener('input', updateContent);
-  bodyInput.addEventListener('input', updateContent);
-
-
+  panel.querySelectorAll('input, textarea').forEach(el => {
+    el.addEventListener('input', updateContent);
+  });
 }
 
 // ============================================================
@@ -1256,7 +1302,7 @@ function setFormat(format) {
   const placeholder = document.getElementById('factory-canvas-placeholder');
   const canvasEl = document.getElementById('factory-canvas');
 
-  if (dims.underConstruction) {
+  if (dims.underConstruction && format !== 'frases') {
     const isFrases = format === 'frases';
     if (ucBox) {
       ucBox.style.display = 'flex';
@@ -1844,6 +1890,37 @@ function renderTemplatePanel() {
       <div class="factory-panel-section-title">Formato activo: ${state.format.toUpperCase()}</div>
     </div>
 
+    ${state.format === 'frases' ? `
+    <div class="factory-panel-section">
+      <div class="factory-panel-section-title">Configuración de Frases</div>
+
+      <div class="factory-field">
+        <label>Diseño de la plantilla</label>
+        <div class="factory-btn-row">
+          <button class="factory-mini-btn ${state.frasesConfig.design === 1 ? 'is-active' : ''}" data-frasedesign="1">1. Con Imagen</button>
+          <button class="factory-mini-btn ${state.frasesConfig.design === 2 ? 'is-active' : ''}" data-frasedesign="2">2. Sin Imagen</button>
+          <button class="factory-mini-btn ${state.frasesConfig.design === 3 ? 'is-active' : ''}" data-frasedesign="3">3. Tres Frases</button>
+        </div>
+      </div>
+
+      <div class="factory-field">
+        <label>Resolución</label>
+        <div class="factory-btn-row">
+          <button class="factory-mini-btn ${state.frasesConfig.resolution === 'post' ? 'is-active' : ''}" data-fraceres="post">Post (1080x1350)</button>
+          <button class="factory-mini-btn ${state.frasesConfig.resolution === 'story' ? 'is-active' : ''}" data-fraceres="story">Historia (1080x1920)</button>
+        </div>
+      </div>
+
+      <div class="factory-field">
+        <label>Opciones visuales</label>
+        <div class="factory-btn-row">
+          <button class="factory-mini-btn ${state.frasesConfig.showBorders ? 'is-active' : ''}" id="fc-toggle-borders">Bordes Activados</button>
+          ${state.frasesConfig.design === 3 ? `<button class="factory-mini-btn ${state.frasesConfig.showChecks ? 'is-active' : ''}" id="fc-toggle-checks">Checks Activados</button>` : ''}
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
     <div class="factory-panel-section">
       <div class="factory-panel-section-title">Tipografía</div>
 
@@ -2010,6 +2087,49 @@ function renderTemplatePanel() {
     persistNow();
     renderTemplatePanel();
   });
+
+  if (state.format === 'frases') {
+    panel.querySelectorAll('[data-frasedesign]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        state.frasesConfig.design = parseInt(btn.dataset.frasedesign, 10);
+        await renderCanvas();
+        renderTemplatePanel();
+        if (state.currentContent) renderTextPanel(state.currentContent);
+        saveWorkingState(state);
+      });
+    });
+
+    panel.querySelectorAll('[data-fraceres]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        state.frasesConfig.resolution = btn.dataset.fraceres;
+        const dims = FORMAT_DIMS.frases;
+        dims.h = state.frasesConfig.resolution === 'story' ? 1920 : 1350;
+        const canvas = document.getElementById('factory-canvas');
+        if (canvas) canvas.height = dims.h;
+        const container = document.getElementById('factory-canvas-container');
+        if (container) container.style.aspectRatio = `1080 / ${dims.h}`;
+        await renderCanvas();
+        renderTemplatePanel();
+        saveWorkingState(state);
+      });
+    });
+
+    const borderBtn = panel.querySelector('#fc-toggle-borders');
+    if (borderBtn) borderBtn.addEventListener('click', async () => {
+      state.frasesConfig.showBorders = !state.frasesConfig.showBorders;
+      await renderCanvas();
+      renderTemplatePanel();
+      saveWorkingState(state);
+    });
+
+    const checksBtn = panel.querySelector('#fc-toggle-checks');
+    if (checksBtn) checksBtn.addEventListener('click', async () => {
+      state.frasesConfig.showChecks = !state.frasesConfig.showChecks;
+      await renderCanvas();
+      renderTemplatePanel();
+      saveWorkingState(state);
+    });
+  }
 
   // Presets: renderizar lista y conectar botón de guardar
   renderPresetsList();
