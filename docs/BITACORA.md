@@ -1,6 +1,6 @@
 # 📓 BITÁCORA — Content Factory
 
-> **Última actualización:** 17/10/2026
+> **Última actualización:** 18/10/2026
 > **Último commit relevante:** `f7fd355` — Festivos: ampliar CELEBRACIONES a 164 entradas
 > **Versión de caché actual:** `?v=52`
 > **DB_VERSION (IndexedDB):** 4
@@ -148,7 +148,8 @@ content-factory/
 
 ## ✅ Estado de cada módulo (al 17/10/2026)
 
-### 1. 🎉 Días Festivos — 🟢 90% (falta probar filtros en prod)
+### 1. 🎉 Días Festivos — 🟢 100% (verificado en producción)
+- Se verificó en GitHub Pages que las 164 celebraciones cargan bien, Día de la Madre en octubre y filtro por día funcionan.
 - **Fuentes:** Nager.Date (feriados oficiales) + lista interna
   `CELEBRACIONES` en `js/services/festivos-service.js` (**164 entradas**).
 - **Países:** AR + Latam (MX, BR, CL, CO, PE, UY, PY, BO, EC, VE) +
@@ -192,10 +193,11 @@ content-factory/
 - Limpieza automática + botón manual.
 - Botón "🧪 Motor" que prueba el motor determinista.
 
-### 5. 🏭 Fábrica — 🟢 80%
+### 5. 🏭 Fábrica — 🟡 90%
 - **4 formatos funcionales:** Post (1080×1350), Historia (1080×1920),
   Historias, Carrusel.
-- **2 formatos con cartel "EN CONSTRUCCIÓN":** Frases y Grilla.
+- **1 formato con cartel "EN CONSTRUCCIÓN":** Grilla.
+- **Frases:** base creada como clon de Post con comillas violetas. Falta pulir herramientas (quitar las que no van) y selector de logo Randomizate.
 - **Editor visual:** drag, zoom, posición X/Y, alineación H/V, opacidad,
   B/N, reset.
 - **Paneles:** Texto (Categoría/Headline/Body), Imagen (miniaturas, URL,
@@ -223,8 +225,7 @@ content-factory/
 ### 🟡 Corto plazo
 1. **Probar en prod** que Día de la Madre sale en octubre, filtro día OK,
    imágenes Unsplash OK (Festivos).
-2. **Formato Frases** (reemplazar "en construcción"): Frase centrada +
-   Autor + Cargo + Imagen + Logo (base de Post).
+2. Terminar Formato Frases: quitar herramientas sobrantes (como Categoría/Body si no van), ajustar comillas, agregar selector de logo Randomizate y ajustar tipografía.
 3. **Formato Grilla** (reemplazar "en construcción"): 5 noticias
    (1 principal + 4 secundarias) con imagen, formato Historia 1080×1920.
 4. **Panel Capas funcional** (hoy placeholder).
@@ -387,6 +388,7 @@ cambio a mano en VS Code.
 - **2026-10-17:** Ampliación de `CELEBRACIONES` de 91 a **164 entradas**
   (limpieza de 5 duplicados). Commit `f7fd355`.
 - **2026-10-17:** Se crea este archivo (`docs/BITACORA.md`).
+- **2026-10-18:** Base del formato Frases en Fábrica (clon de Post con comillas violetas + logo Randomizate). Se aisló el código para no romper Post/Historia/Carrusel.
 
 ---
 

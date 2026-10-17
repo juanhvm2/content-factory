@@ -2,7 +2,7 @@
 // Persistencia y carga de logos para la Fábrica.
 //
 // Estrategia híbrida:
-//  1. Logos oficiales viven en: assets/logos/random.png y assets/logos/express.png
+//  1. Logos oficiales viven en: assets/logos/random.png, assets/logos/express.png y assets/logos/randomizate.png
 //  2. Si el usuario sube un PNG desde la UI, ese "override" se guarda en IndexedDB
 //  3. Si hay override → se usa ese
 //  4. Si no → se carga el PNG oficial desde assets/
@@ -97,11 +97,12 @@ export async function loadLogo(brand) {
   return { image, config, source };
 }
 
-// --- Carga los 2 logos en paralelo ---
+// --- Carga los logos en paralelo ---
 export async function loadAllLogos() {
-  const [random, express] = await Promise.all([
+  const [random, express, randomizate] = await Promise.all([
     loadLogo('random'),
     loadLogo('express'),
+    loadLogo('randomizate'),
   ]);
-  return { random, express };
+  return { random, express, randomizate };
 }

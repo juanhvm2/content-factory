@@ -53,6 +53,7 @@ const state = {
   imgConfigs: {
     post: { ...DEFAULT_IMG_CONFIG },
     story: { ...DEFAULT_IMG_CONFIG },
+    frases: { ...DEFAULT_IMG_CONFIG },
   },
   // Config de plantilla por formato (independiente para cada uno)
   formatConfigs: {
@@ -60,20 +61,16 @@ const state = {
     story: { ...DEFAULT_FORMAT_CONFIG },
     stories: { ...DEFAULT_FORMAT_CONFIG },
     carousel: { ...DEFAULT_FORMAT_CONFIG },
+    frases: { ...DEFAULT_FORMAT_CONFIG },
   },
     // Preset activo
   activePresetId: null,
   activePresetBrand: null,
-  frasesConfig: {
-    design: 1,
-    resolution: 'post',
-    showBorders: true,
-    showChecks: true
-  },
   // Logos (imágenes + config por brand)
   logos: {
     random: null,
     express: null,
+    randomizate: null,
   },
   // Slides (para Carrusel e Historias)
   // Cada slide: { id, template, content: {category, headline, body}, imageUrl, selectedImageUrl, image: HTMLImageElement|null }
@@ -131,7 +128,7 @@ const FORMAT_DIMS = {
   story: { w: 1080, h: 1920, label: 'Historia', slides: false },
   stories: { w: 1080, h: 1920, label: 'Historias', slides: true },
   carousel: { w: 1080, h: 1350, label: 'Carrusel', slides: true },
-  frases: { w: 1080, h: 1350, label: 'Frases', slides: true },
+  frases: { w: 1080, h: 1350, label: 'Frases', slides: false },
   grilla: { w: 1080, h: 1920, label: 'Grilla', slides: false, underConstruction: true },
 };
 
@@ -385,8 +382,16 @@ async function renderCanvas() {
 
     // Si no hay contenido, dibujamos solo el logo y terminamos
   if (!state.currentContent) {
-    drawLogo(ctx, W, H);
-    return;
+      if (state.format === 'frases') {
+        ctx.save();
+        ctx.font = 'bold 200px "Inter", sans-serif';
+        ctx.fillStyle = '#a371f7';
+        ctx.textAlign = 'left';
+        ctx.fillText('“', W * 0.1, H * 0.18);
+        ctx.restore();
+      }
+      drawLogo(ctx, W, H);
+      return;
   }
 
       const c = state.currentContent;
@@ -463,7 +468,17 @@ async function renderCanvas() {
     });
   }
 
-   // Logo del brand (override / oficial / fallback texto)
+  // Comillas para Frases
+  if (state.format === 'frases') {
+    ctx.save();
+    ctx.font = 'bold 200px "Inter", sans-serif';
+    ctx.fillStyle = '#a371f7';
+    ctx.textAlign = 'left';
+    ctx.fillText('“', W * 0.1, H * 0.18);
+    ctx.restore();
+  }
+
+  // Logo del brand (override / oficial / fallback texto)
   drawLogo(ctx, W, H);
 }
 
@@ -877,86 +892,29 @@ function renderTextPanel(content) {
   const panel = document.getElementById('factory-tool-panel');
   if (!panel) return;
 
-  const isFrases = state.format === 'frases';
-  const isDesign3 = isFrases && state.frasesConfig.design === 3;
-
-  let frasesFields = '';
-  if (isFrases) {
-    if (isDesign3) {
-      frasesFields = `
-        <div class="factory-field">
-          <label>Frase 1</label>
-          <textarea id="fc-frase1" class="factory-input" rows="2">${escapeHtml(content.frase1 || '')}</textarea>
-        </div>
-        <div class="factory-field">
-          <label>Frase 2</label>
-          <textarea id="fc-frase2" class="factory-input" rows="2">${escapeHtml(content.frase2 || '')}</textarea>
-        </div>
-        <div class="factory-field">
-          <label>Frase 3</label>
-          <textarea id="fc-frase3" class="factory-input" rows="2">${escapeHtml(content.frase3 || '')}</textarea>
-        </div>
-      `;
-    } else {
-      frasesFields = `
-        <div class="factory-field">
-          <label>Frase</label>
-          <textarea id="fc-headline" class="factory-input" rows="3">${escapeHtml(content.headline || '')}</textarea>
-        </div>
-        <div class="factory-field">
-          <label>Autor</label>
-          <input type="text" id="fc-autor" class="factory-input" value="${escapeHtml(content.autor || '')}">
-        </div>
-        <div class="factory-field">
-          <label>Cargo</label>
-          <input type="text" id="fc-cargo" class="factory-input" value="${escapeHtml(content.cargo || '')}">
-        </div>
-      `;
-    }
-  }
-
   panel.innerHTML = `
     <div class="factory-panel-section">
-      <div class="factory-panel-section-title">Contenido ${isFrases ? 'de la Frase' : 'generado'}</div>
-
-      ${!isFrases ? `
-      <div class="factory-field">
-        <label>Categoría</label>
-        <input type="text" id="fc-category" class="factory-input" value="${escapeHtml(content.category || '')}">
-      </div>
-      ` : ''}
-
-      ${!isFrases || !isDesign3 ? `
-      ${isFrases ? frasesFields : `
-      <div class="factory-field">
-        <label>Headline</label>
-        <textarea id="fc-headline" class="factory-input" rows="3">${escapeHtml(content.headline || '')}</textarea>
-      </div>
-
-      <div class="factory-field">
-        <label>Body</label>
-        <textarea id="fc-body" class="factory-input" rows="5">${escapeHtml((content.body || '').replace(/\*\*/g, ''))}</textarea>
-      </div>
-      `}
-      ` : frasesFields}
+      <div class="factory-panel-section-title">Contenido generado</div>
+      <div class="factory-field"><label>Categoría</label><input type="text" id="fc-category" class="factory-input" value="${escapeHtml(content.category || '')}"></div>
+      <div class="factory-field"><label>Headline</label><textarea id="fc-headline" class="factory-input" rows="3">${escapeHtml(content.headline || '')}</textarea></div>
+      <div class="factory-field"><label>Body</label><textarea id="fc-body" class="factory-input" rows="5">${escapeHtml((content.body || '').replace(/\*\*/g, ''))}</textarea></div>
     </div>
   `;
 
+  const catInput = panel.querySelector('#fc-category');
+  const headInput = panel.querySelector('#fc-headline');
+  const bodyInput = panel.querySelector('#fc-body');
+
   const updateContent = async () => {
-    if (document.getElementById('fc-category')) state.currentContent.category = document.getElementById('fc-category').value;
-    if (document.getElementById('fc-headline')) state.currentContent.headline = document.getElementById('fc-headline').value;
-    if (document.getElementById('fc-body')) state.currentContent.body = document.getElementById('fc-body').value;
-    if (document.getElementById('fc-autor')) state.currentContent.autor = document.getElementById('fc-autor').value;
-    if (document.getElementById('fc-cargo')) state.currentContent.cargo = document.getElementById('fc-cargo').value;
-    if (document.getElementById('fc-frase1')) state.currentContent.frase1 = document.getElementById('fc-frase1').value;
-    if (document.getElementById('fc-frase2')) state.currentContent.frase2 = document.getElementById('fc-frase2').value;
-    if (document.getElementById('fc-frase3')) state.currentContent.frase3 = document.getElementById('fc-frase3').value;
+    state.currentContent.category = catInput.value;
+    state.currentContent.headline = headInput.value;
+    state.currentContent.body = bodyInput.value;
     await renderCanvas();
   };
 
-  panel.querySelectorAll('input, textarea').forEach(el => {
-    el.addEventListener('input', updateContent);
-  });
+  catInput.addEventListener('input', updateContent);
+  headInput.addEventListener('input', updateContent);
+  bodyInput.addEventListener('input', updateContent);
 }
 
 // ============================================================
@@ -1890,37 +1848,6 @@ function renderTemplatePanel() {
       <div class="factory-panel-section-title">Formato activo: ${state.format.toUpperCase()}</div>
     </div>
 
-    ${state.format === 'frases' ? `
-    <div class="factory-panel-section">
-      <div class="factory-panel-section-title">Configuración de Frases</div>
-
-      <div class="factory-field">
-        <label>Diseño de la plantilla</label>
-        <div class="factory-btn-row">
-          <button class="factory-mini-btn ${state.frasesConfig.design === 1 ? 'is-active' : ''}" data-frasedesign="1">1. Con Imagen</button>
-          <button class="factory-mini-btn ${state.frasesConfig.design === 2 ? 'is-active' : ''}" data-frasedesign="2">2. Sin Imagen</button>
-          <button class="factory-mini-btn ${state.frasesConfig.design === 3 ? 'is-active' : ''}" data-frasedesign="3">3. Tres Frases</button>
-        </div>
-      </div>
-
-      <div class="factory-field">
-        <label>Resolución</label>
-        <div class="factory-btn-row">
-          <button class="factory-mini-btn ${state.frasesConfig.resolution === 'post' ? 'is-active' : ''}" data-fraceres="post">Post (1080x1350)</button>
-          <button class="factory-mini-btn ${state.frasesConfig.resolution === 'story' ? 'is-active' : ''}" data-fraceres="story">Historia (1080x1920)</button>
-        </div>
-      </div>
-
-      <div class="factory-field">
-        <label>Opciones visuales</label>
-        <div class="factory-btn-row">
-          <button class="factory-mini-btn ${state.frasesConfig.showBorders ? 'is-active' : ''}" id="fc-toggle-borders">Bordes Activados</button>
-          ${state.frasesConfig.design === 3 ? `<button class="factory-mini-btn ${state.frasesConfig.showChecks ? 'is-active' : ''}" id="fc-toggle-checks">Checks Activados</button>` : ''}
-        </div>
-      </div>
-    </div>
-    ` : ''}
-
     <div class="factory-panel-section">
       <div class="factory-panel-section-title">Tipografía</div>
 
@@ -2088,49 +2015,6 @@ function renderTemplatePanel() {
     renderTemplatePanel();
   });
 
-  if (state.format === 'frases') {
-    panel.querySelectorAll('[data-frasedesign]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        state.frasesConfig.design = parseInt(btn.dataset.frasedesign, 10);
-        await renderCanvas();
-        renderTemplatePanel();
-        if (state.currentContent) renderTextPanel(state.currentContent);
-        saveWorkingState(state);
-      });
-    });
-
-    panel.querySelectorAll('[data-fraceres]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        state.frasesConfig.resolution = btn.dataset.fraceres;
-        const dims = FORMAT_DIMS.frases;
-        dims.h = state.frasesConfig.resolution === 'story' ? 1920 : 1350;
-        const canvas = document.getElementById('factory-canvas');
-        if (canvas) canvas.height = dims.h;
-        const container = document.getElementById('factory-canvas-container');
-        if (container) container.style.aspectRatio = `1080 / ${dims.h}`;
-        await renderCanvas();
-        renderTemplatePanel();
-        saveWorkingState(state);
-      });
-    });
-
-    const borderBtn = panel.querySelector('#fc-toggle-borders');
-    if (borderBtn) borderBtn.addEventListener('click', async () => {
-      state.frasesConfig.showBorders = !state.frasesConfig.showBorders;
-      await renderCanvas();
-      renderTemplatePanel();
-      saveWorkingState(state);
-    });
-
-    const checksBtn = panel.querySelector('#fc-toggle-checks');
-    if (checksBtn) checksBtn.addEventListener('click', async () => {
-      state.frasesConfig.showChecks = !state.frasesConfig.showChecks;
-      await renderCanvas();
-      renderTemplatePanel();
-      saveWorkingState(state);
-    });
-  }
-
   // Presets: renderizar lista y conectar botón de guardar
   renderPresetsList();
   panel.querySelector('#ft-preset-save-btn').addEventListener('click', () => {
@@ -2210,6 +2094,7 @@ async function promptSavePreset() {
       story: { ...state.formatConfigs.story },
       stories: { ...state.formatConfigs.stories },
       carousel: { ...state.formatConfigs.carousel },
+      frases: { ...state.formatConfigs.frases },
     },
   });
 
@@ -2231,7 +2116,7 @@ async function applyPreset(presetId) {
   if (!preset || !preset.design) return;
 
   // Copia cada formato del preset al state actual
-  ['post', 'story', 'stories', 'carousel'].forEach((fmt) => {
+  ['post', 'story', 'stories', 'carousel', 'frases'].forEach((fmt) => {
     if (preset.design[fmt]) {
       state.formatConfigs[fmt] = { ...preset.design[fmt] };
     }
@@ -2473,7 +2358,7 @@ async function applyDefaultPresetForBrand(brand) {
     return false;
   }
 
-  ['post', 'story', 'stories', 'carousel'].forEach((fmt) => {
+  ['post', 'story', 'stories', 'carousel', 'frases'].forEach((fmt) => {
     if (defaultPreset.design[fmt]) {
       state.formatConfigs[fmt] = { ...defaultPreset.design[fmt] };
     }
@@ -2495,7 +2380,7 @@ export async function initFactory() {
     // Restaurar formatConfigs
     if (saved.formatConfigs) {
       const keys = Object.keys(DEFAULT_FORMAT_CONFIG);
-      ['post', 'story', 'stories', 'carousel'].forEach((fmt) => {
+      ['post', 'story', 'stories', 'carousel', 'frases'].forEach((fmt) => {
         if (saved.formatConfigs[fmt]) {
           const clean = {};
           keys.forEach((k) => {
@@ -2508,7 +2393,7 @@ export async function initFactory() {
 
     // Restaurar imgConfigs (post y story)
     if (saved.imgConfigs) {
-      ['post', 'story'].forEach((fmt) => {
+      ['post', 'story', 'frases'].forEach((fmt) => {
         if (saved.imgConfigs[fmt]) {
           state.imgConfigs[fmt] = { ...DEFAULT_IMG_CONFIG, ...saved.imgConfigs[fmt] };
         }
@@ -2563,10 +2448,11 @@ async function reloadLogos() {
     console.log('[factory] Logos cargados:', {
       random: logos.random?.source,
       express: logos.express?.source,
+      randomizate: logos.randomizate?.source,
     });
   } catch (err) {
     console.error('[factory] Error cargando logos', err);
-    state.logos = { random: null, express: null };
+    state.logos = { random: null, express: null, randomizate: null };
   }
 }
 
