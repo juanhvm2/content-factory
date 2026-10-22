@@ -1,11 +1,11 @@
 // festivos.js
 // Módulo Días Festivos. Muestra feriados y celebraciones del mes.
 
-import * as store from '../../core/store.js?v=52';
-import { getFestivosForMonth } from '../../services/festivos-service.js?v=52';
-import { getImagesForFestivo } from '../../services/festivos-images.js?v=52';
-import { REGIONS, getRegion } from '../../data/categories.js?v=52';
-import { addWorkItem } from '../warehouse/warehouse.js?v=52';
+import * as store from '../../core/store.js?v=53';
+import { getFestivosForMonth } from '../../services/festivos-service.js?v=53';
+import { getImagesForFestivo } from '../../services/festivos-images.js?v=53';
+import { REGIONS, getRegion } from '../../data/categories.js?v=53';
+import { addWorkItem } from '../warehouse/warehouse.js?v=53';
 
 const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 

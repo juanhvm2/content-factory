@@ -2,7 +2,7 @@
 // Persistencia de la configuración de la Fábrica y de los presets.
 // Usa los stores 'settings' y 'presets' de IndexedDB.
 
-import * as store from '../../core/store.js?v=52';
+import * as store from '../../core/store.js?v=53';
 
 const SETTINGS_KEY = 'factory_working_state';
 

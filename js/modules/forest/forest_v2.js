@@ -1,15 +1,15 @@
 // forest.js
 // Módulo Bosque de Fuentes. Catálogo + consulta RSS + noticias.
 
-import * as store from '../../core/store.js?v=52';
-import { SEED_SOURCES } from '../../data/sources.js?v=52';
-import { REGIONS, getRegion, getCategory, CATEGORIES } from '../../data/categories.js?v=52';
-import { openSourceEditor, setupSourceEditor } from './source-editor.js?v=52';
-import { fetchSourceNews } from '../../services/rss-service.js?v=52';
-import { addWorkItem } from '../warehouse/warehouse.js?v=52';
-import { detectBrand, getBrand, BRANDS } from '../../data/brands.js?v=52';
-import { fetchWPSource } from '../../services/wp-service.js?v=52';
-import { extractFromLink } from '../../services/link-extractor.js?v=52';
+import * as store from '../../core/store.js?v=53';
+import { SEED_SOURCES } from '../../data/sources.js?v=53';
+import { REGIONS, getRegion, getCategory, CATEGORIES } from '../../data/categories.js?v=53';
+import { openSourceEditor, setupSourceEditor } from './source-editor.js?v=53';
+import { fetchSourceNews } from '../../services/rss-service.js?v=53';
+import { addWorkItem } from '../warehouse/warehouse.js?v=53';
+import { detectBrand, getBrand, BRANDS } from '../../data/brands.js?v=53';
+import { fetchWPSource } from '../../services/wp-service.js?v=53';
+import { extractFromLink } from '../../services/link-extractor.js?v=53';
 
 const state = {
   sources: [],

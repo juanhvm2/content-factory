@@ -1,10 +1,10 @@
 // efemerides.js
 // Módulo Efemérides. Muestra las efemérides históricas del mes en curso.
 
-import * as store from '../../core/store.js?v=52';
-import { getEfemeridesForMonth } from '../../services/efemerides-service.js?v=52';
-import { REGIONS, getRegion, getCategory, CATEGORIES } from '../../data/categories.js?v=52';
-import { addWorkItem } from '../warehouse/warehouse.js?v=52';
+import * as store from '../../core/store.js?v=53';
+import { getEfemeridesForMonth } from '../../services/efemerides-service.js?v=53';
+import { REGIONS, getRegion, getCategory, CATEGORIES } from '../../data/categories.js?v=53';
+import { addWorkItem } from '../warehouse/warehouse.js?v=53';
 import { getImagesForEfemeride } from '../../services/efemerides-images.js?v=50';
 
 const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];

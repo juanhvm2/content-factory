@@ -2,7 +2,7 @@
 
 > **Última actualización:** 18/10/2026
 > **Último commit relevante:** `f7fd355` — Festivos: ampliar CELEBRACIONES a 164 entradas
-> **Versión de caché actual:** `?v=52`
+> **Versión de caché actual:** `?v=53`
 > **DB_VERSION (IndexedDB):** 4
 
 Este archivo es la **fuente de verdad** del proyecto. Si sos una IA o un
@@ -56,7 +56,7 @@ El usuario **NO sabe programar**. Respetá estas reglas siempre:
 ## 🏗️ Stack técnico
 
 - **HTML/CSS/JS vanilla** (sin frameworks, sin build).
-- **Módulos ES6** (`import`/`export`) con caché-busting `?v=52`.
+- **Módulos ES6** (`import`/`export`) con caché-busting `?v=53`.
 - **IndexedDB** (DB_VERSION = 4) — 13 tablas.
 - **Canvas 2D** para renderizar piezas.
 - **JSZip** para exportar ZIP.
@@ -266,11 +266,11 @@ content-factory/
 
 ## 🔢 Versionado de caché
 
-Todos los `import` llevan `?v=NN` al final. **Actual: `?v=52`.**
+Todos los `import` llevan `?v=NN` al final. **Actual: `?v=53`.**
 
 Cuando se hacen cambios grandes:
 1. `Ctrl + Shift + H` en VS Code.
-2. Buscar `v=52` → reemplazar por `v=53`.
+2. Buscar `v=53` → reemplazar por `v=53`.
 3. Guardar todos los archivos.
 
 Esto rompe el caché del navegador y fuerza recarga.
@@ -423,7 +423,7 @@ fases), **este archivo manda**.
 
 Ejemplos de inconsistencias resueltas:
 - Handoff viejo decía "243 fuentes RSS", real son **242**.
-- Handoff viejo decía "?v=46", real es **?v=52**.
+- Handoff viejo decía "?v=46", real es **?v=53**.
 - Handoff viejo decía "11 tablas IndexedDB", real son **13**.
 - Handoff viejo decía "Próximo paso = Fase 6", real el próximo paso era
   completar la lista de Festivos (ya hecho) y luego Frases/Grilla/Capas.
