@@ -450,7 +450,7 @@ async function renderCanvas() {
   const catText = isFrases ? String(c.category || '').toUpperCase() : String(c.category || '');
   const bodyText = isFrases ? String(c.body || '').toUpperCase() : String(c.body || '');
   
-  const catLines = catText ? [catText] : [];
+  const catLines = catText ? wrapPlain(ctx, catText, maxW, fontCss, catSize, 400) : [];
   const headLines = c.headline ? wrapPlain(ctx, c.headline, maxW, fontCss, headSize, 700) : [];
   const bodyLines = bodyText ? wrapPlain(ctx, bodyText.replace(/\*\*/g, ''), maxW, fontCss, bodySize, 400) : [];
 
@@ -465,7 +465,7 @@ async function renderCanvas() {
   let y = H - bottomMargin - totalH;
 
   ctx.textAlign = isFrases ? 'center' : 'left';
-  const textX = isFrases ? W / 2 : PADL;
+  const textX = isFrases ? (PADL + (maxW / 2)) : PADL;
 
   const drawCategory = () => {
     if (catLines.length) {
