@@ -61,11 +61,18 @@ const state = {
     story: { ...DEFAULT_FORMAT_CONFIG },
     stories: { ...DEFAULT_FORMAT_CONFIG },
     carousel: { ...DEFAULT_FORMAT_CONFIG },
-    frases: { ...DEFAULT_FORMAT_CONFIG },
+    frases: { 
+      ...DEFAULT_FORMAT_CONFIG,
+      tplHeadSize: 0.60,
+      tplBodySize: 0.80,
+      tplCatSize: 1.00,
+      tplMarginB: 0.22
+    },
   },
     // Preset activo
   activePresetId: null,
   activePresetBrand: null,
+  logoBrandOverride: null,
   // Logos (imágenes + config por brand)
   logos: {
     random: null,
@@ -301,7 +308,8 @@ function drawFallbackBg(ctx, W, H) {
 
 // --- Dibuja el logo del brand activo en el canvas ---
 function drawLogo(ctx, W, H) {
-  const brand = state.currentWorkItem?.brand === 'express' ? 'express' : 'random';
+  let brand = state.currentWorkItem?.brand === 'express' ? 'express' : 'random';
+  if (state.logoBrandOverride) brand = state.logoBrandOverride;
   const logo = state.logos?.[brand];
   if (!logo) return;
 
@@ -310,7 +318,26 @@ function drawLogo(ctx, W, H) {
 
   // Si hay imagen (override o assets oficiales), dibujarla
   if (logo.image) {
-    const scaleFactor = (cfg.scale || 100) / 100;
+    const isFrasesFormat = state.format === 'frases';
+    const isRandomizate = brand === 'randomizate';
+    
+    let defaultScale = 100;
+    let defaultX = 73;
+    let defaultY = 5;
+    
+    if (isRandomizate) {
+      if (isFrasesFormat) {
+        defaultScale = 170;
+        defaultX = 34;
+        defaultY = 70;
+      } else {
+        defaultScale = 170;
+        defaultX = 63;
+        defaultY = -3;
+      }
+    }
+
+    const scaleFactor = (cfg.scale || defaultScale) / 100;
 
     // Ancho máximo base de 200px, escalado
     const maxWidth = 200 * scaleFactor;
@@ -328,8 +355,8 @@ function drawLogo(ctx, W, H) {
     }
 
     // Posición según % configurado
-    const x = ((cfg.x ?? 74) / 100) * W;
-    const y = ((cfg.y ?? 5) / 100) * H;
+    const x = ((cfg.x ?? defaultX) / 100) * W;
+    const y = ((cfg.y ?? defaultY) / 100) * H;
 
     ctx.save();
     ctx.globalAlpha = cfg.opacity ?? 1;
@@ -339,7 +366,7 @@ function drawLogo(ctx, W, H) {
   }
 
   // Fallback: texto si no hay imagen
-  const brandLabel = brand === 'express' ? 'RANDOM EXPRESS' : 'RANDOM';
+  const brandLabel = brand === 'express' ? 'RANDOM EXPRESS' : (brand === 'randomizate' ? 'RANDOMIZATE' : 'RANDOM');
   const brandColor = brand === 'express' ? '#f85149' : '#a371f7';
 
   ctx.save();
@@ -399,11 +426,12 @@ async function renderCanvas() {
 
   // --- Mapa de fuentes ---
   const FONTS = {
-    inter:     '"Inter", "Helvetica Neue", Arial, sans-serif',
-    helvetica: '"Helvetica Neue", Arial, sans-serif',
-    georgia:   'Georgia, "Times New Roman", serif',
-    impact:    'Impact, "Arial Black", sans-serif',
-    courier:   '"Courier New", monospace',
+    inter:      '"Inter", "Helvetica Neue", Arial, sans-serif',
+    helvetica:  '"Helvetica Neue", Arial, sans-serif',
+    georgia:    'Georgia, "Times New Roman", serif',
+    impact:     'Impact, "Arial Black", sans-serif',
+    courier:    '"Courier New", monospace',
+    newsreader: '"Newsreader", Georgia, serif',
   };
   const fontCss = FONTS[tpl.tplFont] || FONTS.inter;
 
@@ -418,9 +446,13 @@ async function renderCanvas() {
   const bodySize = Math.round(W * 0.031 * tpl.tplBodySize);
 
   // Calcular bloque total
-  const catLines = c.category ? [c.category] : [];
+  const isFrases = state.format === 'frases';
+  const catText = isFrases ? String(c.category || '').toUpperCase() : String(c.category || '');
+  const bodyText = isFrases ? String(c.body || '').toUpperCase() : String(c.body || '');
+  
+  const catLines = catText ? [catText] : [];
   const headLines = c.headline ? wrapPlain(ctx, c.headline, maxW, fontCss, headSize, 700) : [];
-  const bodyLines = c.body ? wrapPlain(ctx, c.body.replace(/\*\*/g, ''), maxW, fontCss, bodySize, 400) : [];
+  const bodyLines = bodyText ? wrapPlain(ctx, bodyText.replace(/\*\*/g, ''), maxW, fontCss, bodySize, 400) : [];
 
   const catH = catLines.length * (catSize * 1.2);
   const headH = headLines.length * (headSize * 1.1);
@@ -432,40 +464,54 @@ async function renderCanvas() {
   const bottomMargin = H * tpl.tplMarginB;
   let y = H - bottomMargin - totalH;
 
-  ctx.textAlign = 'left';
+  ctx.textAlign = isFrases ? 'center' : 'left';
+  const textX = isFrases ? W / 2 : PADL;
 
-  // Categoría
-  if (catLines.length) {
-    ctx.font = `400 ${catSize}px ${fontCss}`;
-    ctx.fillStyle = tpl.tplCatColor;
-    catLines.forEach((line) => {
-      ctx.fillText(line, PADL, y + catSize * 0.9);
-      y += catSize * 1.2;
-    });
-  }
+  const drawCategory = () => {
+    if (catLines.length) {
+      ctx.font = `400 ${catSize}px ${fontCss}`;
+      ctx.fillStyle = tpl.tplCatColor;
+      catLines.forEach((line) => {
+        ctx.fillText(line, textX, y + catSize * 0.9);
+        y += catSize * 1.2;
+      });
+    }
+  };
 
-  if (gapCatHead) y += gapCatHead;
+  const drawHeadline = () => {
+    if (headLines.length) {
+      ctx.font = `700 ${headSize}px ${fontCss}`;
+      ctx.fillStyle = tpl.tplHeadColor;
+      headLines.forEach((line) => {
+        ctx.fillText(line, textX, y + headSize * 0.85);
+        y += headSize * 1.1;
+      });
+    }
+  };
 
-  // Headline
-  if (headLines.length) {
-    ctx.font = `700 ${headSize}px ${fontCss}`;
-    ctx.fillStyle = tpl.tplHeadColor;
-    headLines.forEach((line) => {
-      ctx.fillText(line, PADL, y + headSize * 0.85);
-      y += headSize * 1.1;
-    });
-  }
+  const drawBody = () => {
+    if (bodyLines.length) {
+      ctx.font = `400 ${bodySize}px ${fontCss}`;
+      ctx.fillStyle = tpl.tplBodyColor;
+      bodyLines.forEach((line) => {
+        ctx.fillText(line, textX, y + bodySize * 0.9);
+        y += bodySize * 1.5;
+      });
+    }
+  };
 
-  if (gapHeadBody) y += gapHeadBody;
-
-  // Body
-  if (bodyLines.length) {
-    ctx.font = `400 ${bodySize}px ${fontCss}`;
-    ctx.fillStyle = tpl.tplBodyColor;
-    bodyLines.forEach((line) => {
-      ctx.fillText(line, PADL, y + bodySize * 0.9);
-      y += bodySize * 1.5;
-    });
+  if (isFrases) {
+    drawHeadline();
+    if (gapCatHead) y += gapCatHead;
+    drawCategory();
+    if (gapHeadBody) y += gapHeadBody;
+    drawBody();
+  } else {
+    drawCategory();
+    if (gapCatHead) y += gapCatHead;
+    drawHeadline();
+    if (gapHeadBody) y += gapHeadBody;
+    drawBody();
   }
 
   // Comillas para Frases
@@ -507,6 +553,7 @@ function injectFactoryUI() {
           </div>
         </div>
                <div class="factory-topbar-actions">
+          <button class="btn btn-sm" id="factory-new" style="background:var(--bg-3);border:1px solid var(--border-1);">✨ Crear Nuevo</button>
           <button class="btn btn-sm" id="factory-generate" disabled>⚡ Generar</button>
           <button class="btn btn-sm btn-quality" id="factory-send-quality" disabled>📥 Enviar a Calidad</button>
           <button class="btn btn-sm btn-primary" id="factory-export" disabled>⬇️ Exportar</button>
@@ -515,6 +562,7 @@ function injectFactoryUI() {
 
       <div class="factory-body">
         <aside class="factory-toolbar" id="factory-toolbar">
+          <button class="factory-tool-btn" data-tool="setup"><span class="factory-tool-icon">⚙️</span><span class="factory-tool-label">Setup</span></button>
           <button class="factory-tool-btn is-active" data-tool="texto"><span class="factory-tool-icon">📝</span><span class="factory-tool-label">Texto</span></button>
           <button class="factory-tool-btn" data-tool="imagen"><span class="factory-tool-icon">🖼️</span><span class="factory-tool-label">Imagen</span></button>
           <button class="factory-tool-btn" data-tool="plantilla"><span class="factory-tool-icon">🎨</span><span class="factory-tool-label">Plantilla</span></button>
@@ -560,6 +608,7 @@ function injectFactoryUI() {
 
    bindTopbar();
   bindToolbar();
+  bindNewButton();
   bindGenerateButton();
   bindExportButton();
   bindQualityButton();
@@ -585,6 +634,44 @@ function bindGenerateButton() {
   const btn = document.getElementById('factory-generate');
   if (!btn) return;
   btn.addEventListener('click', () => generateContent());
+}
+
+function bindNewButton() {
+  const btn = document.getElementById('factory-new');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    state.currentWorkItem = {
+      id: 'dummy_' + Date.now(),
+      title: 'Pieza Nueva',
+      content: 'Texto genérico para editar. Puedes reemplazar este contenido.',
+      excerpt: 'Resumen de la pieza nueva.',
+      brand: 'random',
+      images: []
+    };
+    state.currentContent = null;
+    state.currentImage = null;
+    state.selectedImageUrl = null;
+    state.slides = [];
+    state.currentSlideIdx = 0;
+
+    const info = document.getElementById('factory-workitem-info');
+    if (info) {
+      info.innerHTML = `<span class="factory-brand-pill factory-brand-random">Random</span><span class="factory-workitem-title">Pieza Nueva (Manual)</span>`;
+    }
+
+    const placeholder = document.getElementById('factory-canvas-placeholder');
+    if (placeholder) placeholder.style.display = 'none';
+
+    const expBtn = document.getElementById('factory-export');
+    const qualBtn = document.getElementById('factory-send-quality');
+    const genBtn = document.getElementById('factory-generate');
+    if (expBtn) expBtn.disabled = false;
+    if (qualBtn) qualBtn.disabled = false;
+    if (genBtn) genBtn.disabled = false;
+
+    await generateContent();
+    renderBlogPanel();
+  });
 }
 
 // --- Botón Exportar ---
@@ -837,7 +924,7 @@ async function generateContent() {
 
   try {
     // 1. Generar contenido estructurado con el motor
-        const content = extractRealContent({
+        let content = extractRealContent({
       title: state.currentWorkItem.title,
       content: state.currentWorkItem.content || '',
       excerpt: state.currentWorkItem.excerpt || '',
@@ -845,6 +932,14 @@ async function generateContent() {
       categories: state.currentWorkItem.categories || [],
       analysis: state.currentWorkItem.analysis || null,
     });
+    
+    if (state.format === 'frases') {
+      content = {
+        category: 'Nombre del Autor',
+        headline: 'Escribe aquí la frase inspiradora del autor.',
+        body: 'Cargo del Autor'
+      };
+    }
     state.currentContent = content;
 
        // 2. Descargar imagen (usar la elegida o la primera disponible)
@@ -915,6 +1010,45 @@ function renderTextPanel(content) {
   catInput.addEventListener('input', updateContent);
   headInput.addEventListener('input', updateContent);
   bodyInput.addEventListener('input', updateContent);
+}
+
+function renderSetupPanel() {
+  const panel = document.getElementById('factory-tool-panel');
+  if (!panel) return;
+
+  panel.innerHTML = `
+    <div class="factory-panel-section">
+      <div class="factory-panel-section-title">Setup de Marca</div>
+      <p style="font-size:12px; color:var(--text-3); margin-bottom:12px;">Elegí una marca para cargar su plantilla y logo por defecto.</p>
+      
+      <div class="factory-field" style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-sm" data-setup-brand="random" style="justify-content:flex-start;">📸 Random</button>
+        <button class="btn btn-sm" data-setup-brand="express" style="justify-content:flex-start;">⚡ Express</button>
+        <button class="btn btn-sm" data-setup-brand="randomizate" style="justify-content:flex-start;">💬 Randomizate</button>
+      </div>
+    </div>
+  `;
+
+  panel.querySelectorAll('[data-setup-brand]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const brand = btn.dataset.setupBrand;
+      state.logoBrandOverride = brand;
+      
+      if (state.currentWorkItem) {
+        state.currentWorkItem.brand = brand === 'randomizate' ? 'random' : brand;
+        const info = document.getElementById('factory-workitem-info');
+        if (info) {
+          const bLabel = brand === 'express' ? 'Random Express' : 'Random';
+          const bClass = brand === 'express' ? 'factory-brand-express' : 'factory-brand-random';
+          info.innerHTML = `<span class="factory-brand-pill ${bClass}">${bLabel}</span><span class="factory-workitem-title">${escapeHtml(state.currentWorkItem.title)}</span>`;
+        }
+      }
+
+      await applyDefaultPresetForBrand(brand);
+      await renderCanvas();
+      saveWorkingState(state);
+    });
+  });
 }
 
 // ============================================================
@@ -1315,6 +1449,11 @@ function setTool(tool) {
     b.classList.toggle('is-active', b.dataset.tool === tool);
   });
 
+  if (tool === 'setup') {
+    renderSetupPanel();
+    return;
+  }
+
   if (tool === 'texto' && state.currentContent) {
     renderTextPanel(state.currentContent);
     return;
@@ -1390,7 +1529,11 @@ function renderImagePanel() {
           <div class="factory-panel-empty-text">Sin imágenes disponibles</div>
           <div class="factory-panel-empty-sub">Pegá una URL o usá la imagen actual del canvas.</div>
         </div>
-        <button class="btn btn-sm" id="fi-url-btn" style="width:100%;margin-top:8px">🔗 Pegar URL de imagen</button>
+        <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+          <button class="btn btn-sm" id="fi-upload-btn" style="width:100%">📁 Subir imagen</button>
+          <input type="file" id="fi-upload-input" accept="image/*" style="display:none">
+          <button class="btn btn-sm" id="fi-url-btn" style="width:100%">🔗 Pegar URL externa</button>
+        </div>
       </div>
     `;
   } else {
@@ -1408,7 +1551,11 @@ function renderImagePanel() {
             )
             .join('')}
         </div>
-        <button class="btn btn-sm" id="fi-url-btn" style="width:100%;margin-top:10px">🔗 Pegar URL externa</button>
+        <div style="display:flex; flex-direction:column; gap:6px; margin-top:10px;">
+          <button class="btn btn-sm" id="fi-upload-btn" style="width:100%">📁 Subir imagen</button>
+          <input type="file" id="fi-upload-input" accept="image/*" style="display:none">
+          <button class="btn btn-sm" id="fi-url-btn" style="width:100%">🔗 Pegar URL externa</button>
+        </div>
       </div>
     `;
   }
@@ -1481,6 +1628,25 @@ function renderImagePanel() {
     urlBtn.addEventListener('click', () => {
       const url = prompt('URL de la imagen:');
       if (url) setImageFromUrl(url.trim());
+    });
+  }
+
+  const uploadBtn = panel.querySelector('#fi-upload-btn');
+  const uploadInput = panel.querySelector('#fi-upload-input');
+  if (uploadBtn && uploadInput) {
+    uploadBtn.addEventListener('click', () => uploadInput.click());
+    uploadInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        const dataUrl = ev.target.result;
+        state.selectedImageUrl = dataUrl;
+        state.currentImage = await loadImageSmart(dataUrl);
+        await renderCanvas();
+        renderImagePanel();
+      };
+      reader.readAsDataURL(file);
     });
   }
 
@@ -1835,11 +2001,12 @@ function renderTemplatePanel() {
   const tpl = curTpl();
 
   const FONT_OPTIONS = [
-    { id: 'inter',     label: 'Inter (moderna)' },
-    { id: 'helvetica', label: 'Helvetica' },
-    { id: 'georgia',   label: 'Georgia (serif)' },
-    { id: 'impact',    label: 'Impact (condensada)' },
-    { id: 'courier',   label: 'Courier (monoespaciada)' },
+    { id: 'inter',      label: 'Inter (moderna)' },
+    { id: 'helvetica',  label: 'Helvetica' },
+    { id: 'georgia',    label: 'Georgia (serif)' },
+    { id: 'impact',     label: 'Impact (condensada)' },
+    { id: 'courier',    label: 'Courier (monoespaciada)' },
+    { id: 'newsreader', label: 'Newsreader (editorial)' },
   ];
   
 
@@ -2168,8 +2335,28 @@ function renderLogoPanel() {
   const panel = document.getElementById('factory-tool-panel');
   if (!panel) return;
 
-  const brand = state.currentWorkItem?.brand === 'express' ? 'express' : 'random';
-  const brandLabel = brand === 'express' ? 'Random Express' : 'Random';
+  let brand = state.currentWorkItem?.brand === 'express' ? 'express' : 'random';
+  if (state.logoBrandOverride) brand = state.logoBrandOverride;
+  const brandLabel = brand === 'express' ? 'Random Express' : (brand === 'randomizate' ? 'Randomizate' : 'Random');
+  
+  const isFrasesFormat = state.format === 'frases';
+  const isRandomizate = brand === 'randomizate';
+  
+  let defScale = 100;
+  let defX = 73;
+  let defY = 5;
+  
+  if (isRandomizate) {
+    if (isFrasesFormat) {
+      defScale = 170;
+      defX = 34;
+      defY = 70;
+    } else {
+      defScale = 170;
+      defX = 63;
+      defY = -3;
+    }
+  }
   const brandClass = brand === 'express' ? 'factory-brand-express' : 'factory-brand-random';
   const logo = state.logos?.[brand];
 
@@ -2227,28 +2414,25 @@ function renderLogoPanel() {
       </div>
 
       <div class="factory-field">
-        <label>Escala <span id="lg-scale-val" style="color:var(--factory)">${cfg.scale || 100}%</span></label>
-        <input type="range" id="lg-scale" class="factory-input" min="20" max="300" step="5" value="${cfg.scale || 100}">
+        <label>Escala <span id="lg-scale-val" style="color:var(--factory)">${cfg.scale || defScale}%</span></label>
+        <input type="range" id="lg-scale" class="factory-input" min="20" max="300" step="5" value="${cfg.scale || defScale}">
       </div>
 
       <div class="factory-field">
-        <label>Posición X <span id="lg-x-val" style="color:var(--factory)">${Math.round(cfg.x ?? 74)}%</span></label>
-        <input type="range" id="lg-x" class="factory-input" min="0" max="95" step="1" value="${Math.round(cfg.x ?? 74)}">
+        <label>Posición X <span id="lg-x-val" style="color:var(--factory)">${Math.round(cfg.x ?? defX)}%</span></label>
+        <input type="range" id="lg-x" class="factory-input" min="0" max="95" step="1" value="${Math.round(cfg.x ?? defX)}">
       </div>
 
       <div class="factory-field">
-        <label>Posición Y <span id="lg-y-val" style="color:var(--factory)">${Math.round(cfg.y ?? 5)}%</span></label>
-        <input type="range" id="lg-y" class="factory-input" min="0" max="95" step="1" value="${Math.round(cfg.y ?? 5)}">
+        <label>Posición Y <span id="lg-y-val" style="color:var(--factory)">${Math.round(cfg.y ?? defY)}%</span></label>
+        <input type="range" id="lg-y" class="factory-input" min="-20" max="95" step="1" value="${Math.round(cfg.y ?? defY)}">
       </div>
 
       <div class="factory-field">
         <label>Opacidad <span id="lg-opacity-val" style="color:var(--factory)">${Math.round((cfg.opacity ?? 1) * 100)}%</span></label>
         <input type="range" id="lg-opacity" class="factory-input" min="10" max="100" step="5" value="${Math.round((cfg.opacity ?? 1) * 100)}">
       </div>
-            <div class="factory-field">
-        <label>Posición por defecto</label>
-        <button class="factory-mini-btn" id="lg-reset-pos" style="width:100%">↻ Reset a X=74, Y=5</button>
-      </div>
+
     </div>
   `;
 
@@ -2336,14 +2520,7 @@ function renderLogoPanel() {
     await persistAndRedraw({ opacity: v / 100 });
   });
   
-  // Reset posición a 74/5
-  const resetPosBtn = panel.querySelector('#lg-reset-pos');
-  if (resetPosBtn) {
-    resetPosBtn.addEventListener('click', async () => {
-      await persistAndRedraw({ x: 74, y: 5 });
-      renderLogoPanel();
-    });
-  }
+
 }
 
 // --- Aplica el preset marcado como default para un brand ---

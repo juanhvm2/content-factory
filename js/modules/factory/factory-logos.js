@@ -29,9 +29,16 @@ function tryLoadImage(url) {
   });
 }
 
+export const OFFICIAL_LOGOS = {
+  random: 'assets/logos/random.png',
+  express: 'assets/logos/express.png',
+  randomizate: 'assets/logos/randomizate.png',
+};
+
 // --- Carga el logo oficial desde assets/logos/ ---
 async function loadOfficialLogo(brand) {
-  return await tryLoadImage(`assets/logos/${brand}.png`);
+  const path = OFFICIAL_LOGOS[brand] || `assets/logos/${brand}.png`;
+  return await tryLoadImage(path);
 }
 
 // --- Carga la config guardada en IndexedDB ---
